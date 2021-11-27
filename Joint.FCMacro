@@ -1,0 +1,764 @@
+# -*- coding: utf-8 -*-
+#__version__ = "0.2021.11.26"
+#__version__ = "0.2021.11.26"
+#__title__ = "Joint Macro"
+#__author__ = "<TheMarkster> 2021"
+#__license__ = "LGPL 2.1"
+#__doc__ = "Create a mortise/tenon joint, box joint, or dovetail joint."
+#__usage__ = '''Select the face and activate the tool, modify properties as desired'''
+#import Part, FreeCADGui, FreeCAD
+#from PySide import QtGui,QtCore
+#import DraftGeomUtils as DGU
+#import math
+#
+#class Joint:
+#    def __init__(self,obj):
+#        jointGroup = "Joint v."+__version__
+#        obj.addProperty("App::PropertyString","AddSubType",jointGroup,"Additive, Subtractive type when using Part Design pattern tools -- set at time of object creation.")
+#        obj.setEditorMode("AddSubType",1)#readonly
+#        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint"]
+#        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=4
+#        obj.addProperty("App::PropertyVector","Position","Positioning","XYZ position adjustments (internal coordinate system)")
+#        obj.addProperty("App::PropertyFloat","FingerWidth","Dimensions","Width of fingers (for Box Joints / Dovetail Joints only)").FingerWidth=5
+#        obj.addProperty("App::PropertyFloat","FingerAngle","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle=30
+#        obj.addProperty("App::PropertyFloat","FingerAngle2","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle2=0
+#        obj.addProperty("App::PropertyFloatConstraint","FingerAngle2Adjust","Dimensions","Width adjustment factor for FingerAngle2, default = 1.5").FingerAngle2Adjust = (1.5,-1e13,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","Width","Dimensions","width of joint").Width=(3,1,10e13,1)
+#        obj.addProperty("App::PropertyFloatConstraint","Length","Dimensions","length of joint from tip of arc to tip of arc").Length=(2,1,10e13,1)
+#        obj.addProperty("App::PropertyFloatConstraint","Offset","Dimensions","Clearance offset for adjusting the fit").Offset=(0,-10e13,10e13,.1)
+#        obj.addProperty("App::PropertyLinkSub","Face",jointGroup,"Selected face for the joint")
+#        obj.addProperty("App::PropertyBool","EditFace",jointGroup,"Trigger, toggle to bring up face editor").EditFace = False
+#        obj.addProperty("App::PropertyBool","Boolean",jointGroup,"Whether to fuse with or cut from base feature").Boolean = True
+#        obj.addProperty("App::PropertyBool","Symmetric","Positioning","Symmetric to plane (at depth in both directions)").Symmetric = True
+#        obj.addProperty("App::PropertyBool","Reversed","Positioning","Extrude in oppositie direction if True").Reversed = False
+#        obj.addProperty("App::PropertyBool","CutOdd","Positioning","(Box Joints / Dovetails only) cut odd fingers if True, else cut even fingers").CutOdd = False
+#        obj.addProperty("App::PropertyFloatConstraint","Angle","Positioning","Rotation angle (in degrees) about the local Z axis").Angle = (0,-360,360,1)
+#        obj.addProperty("App::PropertyFloatConstraint","AngleX","Positioning","Rotation angle (in degrees) about the local X axis").AngleX = (0,-360,360,1)
+#        obj.addProperty("App::PropertyFloatConstraint","AngleY","Positioning","Rotation angle (in degrees) about the local Y axis").AngleY = (0,-360,360,1)
+#        if not hasattr(obj,"Refine"):
+#            obj.addProperty("App::PropertyBool","Refine", jointGroup, "refine feature").Refine = False
+#        obj.addProperty("App::PropertyBool","ClaimChildren",jointGroup,"whether to claim children in the tree").ClaimChildren = True
+#        obj.setEditorMode("Placement",2) #hidden
+#        self.editingMode = False
+#        self.fpName = obj.Name
+#        obj.Proxy = self
+#
+#    def recompute(self):
+#        t = QtCore.QTimer()
+#        t.singleShot(50,FreeCAD.ActiveDocument.recompute)
+#
+#    def onBeforeChange(self,fp,prop):
+#        pass
+#
+#    def onChanged(self,fp,prop):
+#        if prop == "EditFace" and fp.EditFace == True:
+#            t = QtCore.QTimer()
+#            t.singleShot(50, self.editFace) #avoid warning message about selection changing while committing data
+#            fp.EditFace = False
+#
+#    def editFace(self):
+#        fp = FreeCAD.ActiveDocument.getObject(self.fpName)
+#        if not fp.Face:
+#            return
+#        object = fp.Face[0]
+#        if not object:
+#            return
+#        if not FreeCADGui.Control.activeDialog():
+#            panel = TaskEditLinkSubPanel(fp,"Face","Face")
+#            FreeCADGui.Control.showDialog(panel)
+#            self.editingMode = True #tells execute() not to hide the linked object
+#        else:
+#            self.editingMode=False
+#            FreeCAD.Console.PrintError("Another task dialog is active.  Close that one and try again.\n")
+#
+#    def hideThem(self,fp,proplist,hide=True):
+#        for prop in proplist:
+#            mode = 2 if hide else 0
+#            fp.setEditorMode(prop,mode)
+#
+#    def hideProps(self,fp):
+#        '''hide properties unrelated to this type of joint'''
+#        propsToHide = ["FingerAngle","FingerAngle2","FingerWidth","CutOdd", "FingerAngle2Adjust"]
+#        if fp.JointType in ["Mortise","Tenon"]:
+#            self.hideThem(fp,propsToHide,True)
+#        elif fp.JointType == "Box Joint":
+#            self.hideThem(fp,propsToHide,False)
+#            propsToHide = ["FingerAngle","FingerAngle2","FingerAngle2Adjust"]
+#            self.hideThem(fp,propsToHide,True)
+#        elif fp.JointType == "Dovetail Joint":
+#            self.hideThem(fp,propsToHide,False)
+#
+#    def execute(self,fp):
+#        if not fp.Face:
+#            return
+#        self.hideProps(fp)
+#        fp.Label2 = "("+fp.JointType+")"
+#        object = fp.Face[0]
+#        if not object:
+#            return
+#        face = object.getSubObject(fp.Face[1][0])
+#        if fp.JointType == "Mortise" or fp.JointType == "Tenon":
+#            shape = self.makeMortiseTenon(fp)
+#        elif fp.JointType == "Box Joint":
+#            shape = self.makeBoxJoint(fp)
+#        elif fp.JointType == "Dovetail Joint":
+#            shape = self.makeDovetailJoint(fp)
+#        else:
+#            FreeCAD.Console.PrintError(f"Unsupported joint type: {fp.JointType}\n")
+#            return
+##       thanks to openBrain on the FreeCAD forum for this next line of code
+#        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.CenterOfMass, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),face.Surface.Axis)))
+#        if fp.JointType == "Tenon":
+#            full_shape = object.Shape.fuse(shape) if fp.Boolean else shape
+#        else: #other types all require cuts
+#            full_shape = object.Shape.cut(shape) if fp.Boolean else shape
+#        fp.Shape = full_shape
+#        if hasattr(fp,"BaseFeature") and hasattr(fp,"AddSubShape"):
+#            if fp.BaseFeature and not shape.isNull():
+#                fp.AddSubShape = shape.transformShape(fp.Placement.inverse().toMatrix(),True)
+#            else:
+#                fp.AddSubShape = shape
+#        if not self.editingMode:
+#            object.ViewObject.Visibility = False if shape and fp.Boolean else True
+#
+#    def makeBoxJoint(self,fp):
+#        '''make the box joint shape'''
+#        num = fp.Width / (fp.FingerWidth)
+#        num = int(math.ceil(num))
+#        boxes = []
+#        depth = fp.Depth if not fp.Symmetric else fp.Depth*2
+#        for n in range(0,num):
+#            if bool(n % 2 == 0 and fp.CutOdd) or bool(n % 2 == 1 and not fp.CutOdd):
+#                continue
+#            x = -fp.Offset -fp.Width/2 + n * fp.FingerWidth
+#            y = -fp.Offset -fp.Length/2
+#            z = 0 if not fp.Symmetric else -fp.Depth
+#            pt = FreeCAD.Vector(x,y,z).add(fp.Position)
+#            boxes.append(Part.makeBox(fp.FingerWidth+fp.Offset*2, fp.Length+fp.Offset, depth+fp.Offset*2,pt-FreeCAD.Vector(0,0,fp.Offset*2)))
+#        fusion = boxes[0].fuse(boxes[1:]) if len(boxes) > 1 else boxes[0]
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(1,0,0),fp.AngleX)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        return fusion
+#
+#    def makeWedge(self,fp,wid,length,ht,pt):
+#        '''make a wedge/finger for the dovetail joints'''
+#        tanlength = math.tan(math.radians(-fp.FingerAngle))*length
+#        bottomLeft = FreeCAD.Vector(pt.x , pt.y, pt.z)
+#        topLeft = FreeCAD.Vector(pt.x - tanlength, pt.y + length, pt.z)
+#        bottomRight = FreeCAD.Vector(pt.x + wid - tanlength, pt.y,pt.z)
+#        topRight = FreeCAD.Vector(pt.x + wid, pt.y + length, pt.z)
+#        dist = math.tan(math.radians(fp.FingerAngle2))*ht
+#        bottomLeft2 = bottomLeft.add(FreeCAD.Vector(-dist,0,ht)) 
+#        topLeft2 = topLeft.add(FreeCAD.Vector(-dist,0,ht))
+#        bottomRight2 = bottomRight.add(FreeCAD.Vector(dist,0,ht))
+#        topRight2 = topRight.add(FreeCAD.Vector(dist,0,ht))
+#        adjust = FreeCAD.Vector(-dist*fp.FingerAngle2Adjust,0,0)
+#        topRight = topRight + adjust
+#        topRight2 = topRight2 + adjust
+#        bottomRight = bottomRight + adjust
+#        bottomRight2 = bottomRight2 + adjust
+#        left = Part.makeLine(bottomLeft,topLeft)
+#        right = Part.makeLine(topRight,bottomRight)
+#        bottom = Part.makeLine(bottomLeft,bottomRight)
+#        top = Part.makeLine(topLeft,topRight)
+#        top2 = Part.makeLine(topLeft2,topRight2)
+#        bottom2 = Part.makeLine(bottomLeft2,bottomRight2)
+#        left2 = Part.makeLine(top2.Vertex1.Point,bottom2.Vertex1.Point)
+#        right2 = Part.makeLine(top2.Vertex2.Point,bottom2.Vertex2.Point)
+#        wire = Part.Wire([left, top, right, bottom])
+#        face = Part.makeFace(wire, "Part::FaceMakerCheese")
+#        face = face.makeOffset2D(fp.Offset,join=2) if fp.Offset != 0 else face
+#        dir = FreeCAD.Vector(0,0,1) if not fp.Reversed else FreeCAD.Vector(0,0,-1)
+#        wire2 = Part.Wire([top2,right2,bottom2,left2])
+#        face2 = Part.makeFace(wire2,"Part::FaceMakerCheese")
+#        face2 = face2.makeOffset2D(fp.Offset,join=2) if fp.Offset != 0 else face2
+#        loft = Part.makeLoft([face.Wire1,face2.Wire1],True)
+#        return loft
+#
+#    def makeDovetailJoint(self,fp):
+#        '''make the dovetial joint shape'''
+#        num = fp.Width / (fp.FingerWidth)
+#        num = int(math.ceil(num))
+#        wedges = []
+#        depth = fp.Depth if not fp.Symmetric else fp.Depth*2
+#        for n in range(-1,num+1):
+#            if bool(n % 2 == 0 and fp.CutOdd) or bool(n % 2 == 1 and not fp.CutOdd):
+#                continue
+#            x = -fp.Offset -fp.Width/2 + n * fp.FingerWidth
+#            y = -fp.Offset -fp.Length/2
+#            z = 0 if not fp.Symmetric else -fp.Depth
+#            pt = FreeCAD.Vector(x,y,z).add(fp.Position)
+#            wedges.append(self.makeWedge(fp, fp.FingerWidth+fp.Offset*2, fp.Length+fp.Offset, depth+fp.Offset,pt))
+#        fusion = wedges[0].fuse(wedges[1:]) if len(wedges) > 1 else wedges[0]
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(1,0,0),fp.AngleX)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        return fusion
+#
+#    def makeMortiseTenon(self,fp):
+#        '''make the shape'''
+#        adjust = fp.Position
+#        topLeft = FreeCAD.Vector(-fp.Width/2,fp.Length/2,0).add(adjust)
+#        topRight = FreeCAD.Vector(fp.Width/2,fp.Length/2,0).add(adjust)
+#        bottomLeft = FreeCAD.Vector(-fp.Width/2,-fp.Length/2,0).add(adjust)
+#        bottomRight = FreeCAD.Vector(fp.Width/2,-fp.Length/2,0).add(adjust)
+#        midLeft = FreeCAD.Vector(-fp.Width/2,0,0).add(adjust)
+#        midRight = FreeCAD.Vector(fp.Width/2,0,0).add(adjust)
+#        top = Part.makeLine(topLeft,topRight)
+#        bottom = Part.makeLine(bottomLeft,bottomRight)
+#        left = Part.makeCircle(fp.Length/2,midLeft,FreeCAD.Vector(0,0,1),90,270)
+#        right = Part.makeCircle(fp.Length/2,midRight,FreeCAD.Vector(0,0,1),270,90)
+#        wire = Part.Wire([top,right,bottom,left])
+#        wire.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
+#        face = Part.makeFace(wire,"Part::FaceMakerCheese")
+#        if fp.Offset != 0:
+#            face = face.makeOffset2D(fp.Offset)
+#        if fp.Reversed:
+#            dir = FreeCAD.Vector(0,0,1)
+#        else:
+#            dir = FreeCAD.Vector(0,0,-1)
+#        if fp.JointType == "Mortise":
+#            dir = dir * (-1)
+#        extrude = face.extrude(dir*fp.Depth)
+#        if fp.Symmetric:
+#            extrude2 = face.extrude(dir*-1*fp.Depth)
+#            extrude = extrude.fuse(extrude2)
+#        extrude.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
+#        extrude = extrude.transformShape(extrude.Placement.toMatrix(),True)
+#        extrude.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(1,0,0),fp.AngleX)
+#        extrude = extrude.transformShape(extrude.Placement.toMatrix(),True)
+#        return extrude
+#
+#class TaskEditLinkSubPanel: #simple editor for App::PropertyLinkSub
+#    def __init__(self, obj, linkSubName, subNames,):
+#        self.obj = obj
+#        self.subNames = subNames
+#        self.linkSubName = linkSubName #entire LinkSub property
+#        self.linkObj = getattr(self.obj,linkSubName)[0]
+#        self.subObjects = getattr(self.obj,linkSubName)[1]
+#        self.form = QtGui.QWidget()
+#        self.label1 = QtGui.QLabel("Select the "+self.subNames+" subobjects to use and click OK.\nThe ones already being utilized have been selected for you.")
+#        layout=QtGui.QHBoxLayout()
+#        layout.addWidget(self.label1)
+#        self.form.setLayout(layout)
+#        self.form.setWindowTitle('Edit '+self.subNames)
+#        self.obj.ViewObject.Visibility = False
+#        self.linkObj.ViewObject.Visibility = True
+#        FreeCADGui.Selection.clearSelection()
+#        for f in self.subObjects:
+#            FreeCADGui.Selection.addSelection(FreeCAD.ActiveDocument.Name,self.linkObj.Name,f)
+#        self.obj.Proxy.editingMode = True
+#
+#    def reject(self):
+#        FreeCADGui.Control.closeDialog()
+#        fp = self.obj
+#        self.linkObj.ViewObject.Visibility = False
+#        fp.ViewObject.Visibility = True
+#        self.obj.Proxy.editingMode = False #self.obj.Proxy is the Joint class object (self in that class)
+#        FreeCADGui.activeDocument().resetEdit()
+#        FreeCAD.ActiveDocument.recompute()
+#
+#    def accept(self):
+#        FreeCADGui.ActiveDocument.resetEdit()
+#        FreeCADGui.Control.closeDialog()
+#        fp = self.obj
+#        if not fp: #user deleted or closed document perhaps
+#            return
+#        selx = FreeCADGui.Selection.getSelectionEx()
+#        if not selx:
+#            FreeCAD.Console.PrintWarning("Nothing selected, leaving "+self.linkObj.Name+" unmodified.")
+#            return
+#        seNames = [sen for sen in selx[0].SubElementNames]
+#        setattr(self.obj,self.linkSubName,(selx[0].Object,seNames)) #allow user to select diffent object
+#        self.linkObj = selx[0].Object
+#        if hasattr(fp,"_Body") and fp._Body and self.linkObj not in fp._Body.Group:
+#            fp._Body.Group += [self.linkObj]
+#            if not self.linkObj.isDerivedFrom("PartDesign::Feature"):
+#               fp.ClaimChildren = True
+#        self.linkObj.ViewObject.Visibility = False
+#        fp.ViewObject.Visibility = True
+#        if hasattr(fp.Proxy,"editingMode"):
+#            fp.Proxy.editingMode = False
+#        FreeCAD.ActiveDocument.recompute()
+#
+#
+#class JointVP:
+#
+#    def __init__(self, obj):
+#        '''Set this object to the proxy object of the actual view provider'''
+#        obj.Proxy = self
+#
+#    def attach(self, obj):
+#        '''Setup the scene sub-graph of the view provider, this method is mandatory'''
+#        self.Object = obj.Object
+#
+#    def updateData(self, fp, prop):
+#        '''If a property of the handled feature has changed we have the chance to handle this here'''
+#        # fp is the handled feature, prop is the name of the property that has changed
+#        pass
+#
+#    def getDisplayModes(self,obj):
+#        '''Return a list of display modes.'''
+#        modes=[]
+#        modes.append("Flat Lines")
+#        return modes
+#
+#    def setEdit(self,vobj,modNum):
+#        if modNum == 0:
+#            vobj.Object.Proxy.editFace()
+#            return True
+#        elif modNum == 3:
+#            FreeCADGui.runCommand('Part_ColorPerFace',0)
+#            return True
+#
+#    def getDefaultDisplayMode(self):
+#        '''Return the name of the default display mode. It must be defined in getDisplayModes.'''
+#        return "Flat Lines"
+ 
+#    def setDisplayMode(self,mode):
+#        '''Map the display mode defined in attach with those defined in getDisplayModes.\
+#                Since they have the same names nothing needs to be done. This method is optional'''
+#        return mode
+#
+#    def onChanged(self, vp, prop):
+#        '''Here we can do something when a single property got changed'''
+#        #FreeCAD.Console.PrintMessage("Change property: " + str(prop) + ""+chr(10))
+#
+#    def claimChildren(self):
+#        if self.Object.ClaimChildren and self.Object.Face and not self.Object.Shape.isNull() and self.Object.Boolean:
+#            return [self.Object.Face[0]]
+#        else:
+#            return []
+#
+#    def onDelete(self, vobj, subelements):
+#        if vobj.Object.Face:
+#            vobj.Object.Face[0].ViewObject.Visibility = True
+#        if hasattr(vobj.Object,"_Body"): #do this only when the object is in a PD body
+#            #need to ensure the next feature in the tree's BaseFeature property points to our BaseFeature
+#            solids = [feat for feat in vobj.Object._Body.Group if feat.isDerivedFrom("PartDesign::Feature") and feat.BaseFeature == vobj.Object]
+#            if len(solids) == 1: #found previous solid feature
+#                solids[0].BaseFeature = vobj.Object.BaseFeature
+#        return True
+#
+#    def getIcon(self):
+#        '''Return the icon in XPM format which will appear in the tree view. This method is\
+#                optional and if not defined a default icon is shown.'''
+#        return '''
+#/* XPM */
+#static char *_637979355779[] = {
+#/* columns rows colors chars-per-pixel */
+#"64 64 151 2 ",
+#"   c #1D1D0E0E3C3C",
+#".  c #56160CCD0CCD",
+#"X  c #5D370A6C0A6C",
+#"o  c #45450D0D1717",
+#"O  c #56D714951495",
+#"+  c #575718181818",
+#"@  c #62620D0D0D0D",
+#"#  c #6B150D0D0D0D",
+#"$  c #74740D0D0D0D",
+#"%  c #79790D0D0D0D",
+#"&  c #7D270DB812BD",
+#"*  c #77770F0F1F1F",
+#"=  c #78780D0D1D1D",
+#"-  c #656511111313",
+#";  c #717110101212",
+#":  c #5E5E0F0F2B2B",
+#">  c #4B4B0F0F3BBC",
+#",  c #59DA0F0F3C3C",
+#"<  c #414111113333",
+#"1  c #484810103333",
+#"2  c #5D5D10103030",
+#"3  c #66660E0E2424",
+#"4  c #6BEC0F0F2D2D",
+#"5  c #65650F0F3333",
+#"6  c #6B6B0D0D3F3F",
+#"7  c #73730D0D3636",
+#"8  c #5D5D22222222",
+#"9  c #63632D2D2D2D",
+#"0  c #686835353535",
+#"q  c #0C8D0C8D562B",
+#"w  c #0AAE0AAE5CF5",
+#"e  c #1A1A10105151",
+#"r  c #1369136958AE",
+#"t  c #37370F0F4D4D",
+#"y  c #393911114949",
+#"u  c #33330F0F52D3",
+#"i  c #31310E0E5858",
+#"p  c #398F0DB85C5C",
+#"a  c #20A120A15D5D",
+#"s  c #0D0D0D0D64A4",
+#"d  c #0E0E0E0E6D6D",
+#"f  c #0D0D0D0D721C",
+#"g  c #0D0D0D0D7CBC",
+#"h  c #1C9D0E0E72F3",
+#"j  c #15400D637E53",
+#"k  c #111110107474",
+#"l  c #3A3A0D0D6F6F",
+#"z  c #29AA0E0E7777",
+#"x  c #37370D0D7373",
+#"c  c #2A2A2A2A6262",
+#"v  c #36B736B769EA",
+#"b  c #46460E0E4F4F",
+#"n  c #49090D8E4CCD",
+#"m  c #5E5E0D0D4C4C",
+#"M  c #49490D0D5F5F",
+#"N  c #76F74B4B4B4B",
+#"B  c #7F7F58585858",
+#"V  c #464646467373",
+#"C  c #535353537C7C",
+#"Z  c #84B70D740D74",
+#"A  c #8CE20D0D0D0D",
+#"S  c #947D0CB00CC7",
+#"D  c #9B9B0CA60CA6",
+#"F  c #81810D0D147B",
+#"G  c #90900E0E1515",
+#"H  c #9ADA0D0D1192",
+#"J  c #949412121212",
+#"K  c #A6FC0A430A60",
+#"L  c #ACEC0C4C0C4C",
+#"P  c #B3D80B300B30",
+#"I  c #BD0B0A590A59",
+#"U  c #A52513941394",
+#"Y  c #A1A11D9E1D9E",
+#"T  c #A3A32A2A2A2A",
+#"R  c #A4A435353535",
+#"E  c #A6A63DBE3DBE",
+#"W  c #C1C00A0A0A0A",
+#"Q  c #A8A845454545",
+#"!  c #AD2D58D958D9",
+#"~  c #8A8A69696969",
+#"^  c #921274F574F5",
+#"/  c #AFAF63636363",
+#"(  c #B2B26E6E6E6E",
+#")  c #B4B477777777",
+#"_  c #B6B67E7E7E7E",
+#"`  c #0D8E0D8E85C5",
+#"'  c #0D0D0CCD8D78",
+#"]  c #16970D8E8686",
+#"[  c #13130F0F8888",
+#"{  c #0CB70CA6941C",
+#"}  c #0C7A0C7A9C2E",
+#"|  c #12930D0D9A1A",
+#" . c #139413949595",
+#".. c #1C9D1C9D9313",
+#"X. c #22220D0D8888",
+#"o. c #252525259393",
+#"O. c #2F2F2F2F9494",
+#"+. c #3B3B3B3B9797",
+#"@. c #0A0F0A0EA794",
+#"#. c #0B200B20A900",
+#"$. c #0B0B0B0BB333",
+#"%. c #0A0A0A0ABEBE",
+#"&. c #29292929A2A2",
+#"*. c #4C4C4C4C9D1D",
+#"=. c #62E362E38606",
+#"-. c #747474749292",
+#";. c #5C5C5C5CA323",
+#":. c #6B6B6B6BA828",
+#">. c #79797979AD2D",
+#",. c #68686868B1B1",
+#"<. c #0A0A0A0AC1B7",
+#"1. c #810181019A1A",
+#"2. c #A3A38E8E8E8E",
+#"3. c #B9B989898989",
+#"4. c #A8A897179717",
+#"5. c #BDBD97979797",
+#"6. c #92929292A5A5",
+#"7. c #9F9F9F9FAEAE",
+#"8. c #8A8A8A8AB333",
+#"9. c #9A1A9A1AB939",
+#"0. c #AEAEA0A0A0A0",
+#"q. c #A1A1A1A1AFAF",
+#"w. c #BFBFA0A0A0A0",
+#"e. c #B5B5AAAAAAAA",
+#"r. c #A6A6A6A6BEBE",
+#"t. c #BBBBB2B2B2B2",
+#"y. c #BFBFB8B8B8B8",
+#"u. c #C2C2A7A7A7A7",
+#"i. c #C5C5B0B0B0B0",
+#"p. c #CACABEBEBEBE",
+#"a. c #ACACACACC2C2",
+#"s. c #B6B6B6B6C7C7",
+#"d. c #BFBFBFBFC6C6",
+#"f. c #C81DC51AC8C8",
+#"g. c #CFCFC8C8C8C8",
+#"h. c #D3D3CECECECE",
+#"j. c #C6C6C6C6D0D0",
+#"k. c #CDCDCDCDD151",
+#"l. c #D4D4D3D3D3D3",
+#"z. c #D9D9D7D7D7D7",
+#"x. c #D4D4D4D4DA5A",
+#"c. c #DADAD9D9DA84",
+#"v. c #E0E0DFDFDFDF",
+#"b. c #DFDFDFDFE2E2",
+#"n. c #E3E3E37CE416",
+#"m. c #E8E8E7E7E7E7",
+#"M. c #E7E7E7E7E8E8",
+#"N. c #ECACECACED2C",
+#"B. c #F4BDF4BDF62C",
+#"V. c #F426F426FB94",
+#"C. c None",
+#/* pixels */
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.B.B.V.B.V.B.B.V.V.V.V.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.B.7.v w w w w w g @.@.@.@.@.",
+#"f.B.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.m.1.a w w w q s ' @.@.@.@.@.@.@.",
+#"X + B 4.z.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.k.=.r w w s q f { @.@.@.@.@.@.@.@.@.",
+#"X X X X X 9 ^ t.B.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.B.r.V w w w w q g @.@.@.@.@.@.@.@.@.@.@.@.",
+#"L Z # . X X X X O N 2.l.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.N.6.c w w w w s ` @.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W I S % @ . X X X X 8 ~ e.m.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.c.-.q w w w q f ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W L A # . X X X X . N ^ g.B.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.d.C q w s w q f } @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W I K % @ . @ @ X X + B 0.v.C.C.C.C.C.C.C.C.C.C.C.B.q.v w w w w w g @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W I A $ . X X X X . 0 ^ y.B.C.C.C.C.C.M.1.a w w w q s ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W I W W W U Z # . X X X X + N 2.c.k.=.r s w w q d } @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W I S $ X . X X o   q w w w q g @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W L Z e q q w q s ` @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W P #.%.} d { @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W P #.<.<.{ @.@.} @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W } <.<.} #.h 1 @.@.@.@.@.@.@.@.@.@.@.@.@.@.$.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W I [ #.$.' t S 4 @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W D D S ; K K 4 @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W D K K = @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W S L K & @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.$.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W D K K F @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W I D K K F @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W I L W W D K K F @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W z b K D K K F @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W X.<.#.y > t h @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W z <.<.| @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W l <.<.@.} @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W x <.<.} @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W x <.<.} @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W x <.<.@.} @.@.@.@.@.@.@.@.@.@.@.$.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W l <.<.@.@.@.u { @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W M <.<.$.j : D ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W G * 5 2 % K K ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W P S K D ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W P S K K j @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W P S K K j @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.$.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W I A K K ] @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W I W W W A K K j @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 5 , L I A K K j @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W m <.| , - 3 > ' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W m <.<.%.` @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 6 <.<.%.' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 7 <.<.<.' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 7 <.<.<. .@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 7 <.<.<.' @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 7 <.<.<.' @.{ j @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.#.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W 7 <.<.<.' h F p @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W H n p p < D K p @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.| ;.j.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W A K K p @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@...>.n.C.C.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W A K K p @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.O.9.B.C.C.C.C.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W A K K b @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.} *.s.B.C.C.C.C.C.C.",
+#"W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W W A K K b @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@.@. .:.x.C.C.C.C.C.C.C.C.C.",
+#"_ E L W W W I W W W W W W W W W W W W W W W W W W W W W W W W A K K n @.@.@.@.@.@.@.@.@.@.@.@.@.@.@.o.8.m.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.n.u./ Y I W W W W W W W W W W W W W W W W W W W W U 4 I W S K K n @.@.@.@.@.@.@.@.@.@.@.@.} +.a.V.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.h.3.Q U W W W W W W W W W W W W W W W W W H <.] 4 A S & i @.@.@.@.@.@.@.@.@.@.} ;.f.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.B.i.( T P W W W W W W W W W W W W W H <.<.<.k ' @.@.@.@.@.@.@.@.@.@...>.b.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.z.5.! U I W W W W W W W W W H <.<.<.{ @.@.@.@.@.@.@.@.@.O.9.B.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.B.p.) R P W W W W W W K $.<.<.{ @.@.@.@.@.@.} *.s.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.n.w.! J I W W L $.<.<.{ @.@.@.@. .:.x.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.g.3.Q J #.<.<.{ @.@.o.8.m.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.N.a.,.&.` +.a.B.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.v.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.",
+#"C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C.C."
+#};
+
+#'''
+ 
+#    def __getstate__(self):
+#        '''When saving the document this object gets stored using Python's json module.\
+#                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+#                to return a tuple of all serializable objects or None.'''
+#        return None
+ 
+#    def __setstate__(self,state):
+#        '''When restoring the serialized object from document we have the chance to set some internals here.\
+#                Since no data were serialized nothing needs to be done here.'''
+#        return None
+
+
+
+############
+#if __name__ == "__main__":
+#    FreeCAD.Console.PrintMessage("Please run "+BASENAME+".FCMacro rather than this file.\n")
+############
+
+#CODE_ENDS_HERE
+
+BASENAME = 'joint'
+
+def getBody(feature):
+    doc = FreeCAD.ActiveDocument
+    bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
+    for bod in bodies:
+        if feature in bod.Group:
+            return bod
+    return None
+
+def getJointType():
+    '''ask user the joint type to make, return as string'''
+    from PySide import QtCore,QtGui
+    window = QtGui.QApplication.activeWindow()
+    items = ["Mortise","Tenon","Box Joint","Dovetail Joint","Cancel"]
+    caption = "Select joint type"
+    item,ok = QtGui.QInputDialog.getItem(window,"Joint type",caption,items,False)
+    if ok:
+        return item
+    else:
+        return None
+
+def makeObject(FP):
+    import DraftGeomUtils as DGU
+    doc = FreeCAD.ActiveDocument
+    body=None
+    selobjs = FreeCADGui.Selection.getSelectionEx()
+    if doc:
+        doc.openTransaction("Create Joint")
+
+        if selobjs:
+            for selobj in selobjs:
+                body = getBody(selobj.Object)
+                jType = getJointType()
+                if not jType:
+                    continue
+                if jType == "Tenon":
+                    orientation = "External"
+                else:
+                    orientation = "Internal"
+                if body:
+                    if orientation == "External":
+                        joint = body.newObject("PartDesign::FeatureAdditivePython", "Joint")
+                    else:
+                        joint = body.newObject("PartDesign::FeatureSubtractivePython", "Joint")
+                else:
+                    joint = doc.addObject("Part::FeaturePython","Joint")
+                FP.Joint(joint)
+                FP.JointVP(joint.ViewObject)
+                joint.AddSubType = "Additive" if jType == "Tenon" else "Subtractive"
+                joint.Width = joint.Width * 10 if "Box" in jType or "Dovetail" in jType else joint.Width
+                joint.Proxy.execute(joint)
+                if body:
+                    joint.ClaimChildren = False #do not claim children in Part Design to preserve the linear tree
+                if selobj.HasSubObjects:
+                    faces = [name for name in selobj.SubElementNames if "Face" in name]
+                    if faces and len(faces) == 1 and DGU.isPlanar(selobj.Object.getSubObject(faces[0])):
+                        joint.Face = (selobj.Object,faces)
+                    else:
+                        FreeCAD.Console.PrintError("Select 1 (planar) face of an object. Using Face1\n")
+                        joint.Face = (selobj.Object, ["Face1"])
+                else:
+                    joint.Face = (selobj.Object, ["Face1"])
+                    FreeCAD.Console.PrintError("Select 1 (planar) face of an object.\n")
+                joint.JointType = jType
+        else:
+            FreeCAD.Console.PrintMessage("No face selected to make a joint on.\n")
+
+        doc.commitTransaction()
+        doc.recompute()
+
+def writeFile():
+    with open(py_file,"w") as outfile:
+        for line in code.splitlines():
+            if "#CODE_ENDS_HERE" in line:
+                break
+            if line.startswith('#'):
+                if line == "# -*- coding: utf-8 -*-":
+                    line = "#" + line
+                outfile.write(line[1:]+"\n") #skip first character (#)
+
+
+
+############
+#if __name__ == "__main__":
+#    makeObject(None)
+#    raise Exception("quick exit for testing/debugging")
+############
+
+if __name__ == "__main__":
+    import os
+    fin = open(__file__, 'r')
+    code = fin.read()
+    fin.close()
+    version = code.splitlines()[1][16:]
+    real_path = os.path.realpath(__file__)
+    dir_path = os.path.dirname(real_path)
+    py_file = real_path.replace(".FCMacro",".py").replace('Joint','joint')
+    bHasFile = os.path.exists(py_file)
+    noImport = False #user elects not to save import file
+
+    if not bHasFile:
+        from PySide import QtCore,QtGui
+        window = QtGui.QApplication.activeWindow()
+        items = ["Yes, go ahead and create the file.", "No, do not create the file.","Cancel"]
+        caption = "In order for "+BASENAME+" objects to be parametric after saving and reloading file\n\
+we need to create another file on this computer.  File to be created will be: \n\n"+py_file+"\n\n\
+This makes it available to the system upon restarting FreeCAD and loading documents containing the \n\
+"+BASENAME+" feature python objects.  May we proceed?\n\n"
+        item,ok = QtGui.QInputDialog.getItem(window,"One time installation",caption,items)
+        if ok and item == items[0]:
+            writeFile()
+            QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove this file, too.\n")
+        else:
+            new_lines = []
+            for line in code.splitlines():
+                if line.startswith('#'):
+                    if "CODE_ENDS_HERE" in line:
+                        break
+                    if line == "# -*- coding: utf-8 -*-":
+                        new_lines.append(line+"\n")
+                        continue
+                    new_lines.append(line[1:]+"\n")
+            code = "".join(new_lines)
+
+            #credit to Mila Nautikus for his answer to a question on stackoverflow, which I modified here
+            #in this example the filename is bevel.py
+            #https://stackoverflow.com/questions/5362771/how-to-load-a-module-from-code-in-a-string
+
+            ##########
+            import sys, importlib
+            my_name = 'joint' #filename = joint.py, so this must be 'joint'
+            my_spec = importlib.util.spec_from_loader(my_name, loader=None)
+
+            joint = importlib.util.module_from_spec(my_spec)
+
+            exec(code, joint.__dict__)
+            sys.modules['joint'] = joint
+            makeObject(joint)
+            noImport = True
+
+    if not noImport: #don't never use no double negatives
+
+        import joint as FP
+        import addonmanager_utilities as utils
+
+        if FP.__version__ != __version__:
+            writeFile()
+            from PySide import QtCore,QtGui
+            window = QtGui.QApplication.activeWindow()
+            mbox = QtGui.QMessageBox()
+            mbox.setWindowTitle(BASENAME+" updated")
+
+            mbox.setText(BASENAME+".py has been updated to version "+__version__+". \
+You must restart FreeCAD for the new changes to take effect and to use the macro.")
+            mbox.setIcon(mbox.Warning)
+            mbox.setStandardButtons(mbox.Ok | mbox.Cancel)
+            mbox.setDefaultButton(mbox.Cancel)
+            okBtn = mbox.button(QtGui.QMessageBox.StandardButton.Ok)
+            cancelBtn = mbox.button(QtGui.QMessageBox.StandardButton.Cancel)
+            okBtn.setText("Restart now")
+            cancelBtn.setText("Restart later")
+            ret = mbox.exec_()
+            if ret == mbox.Ok:
+                QtCore.QTimer.singleShot(1000, utils.restart_freecad)
+        else:
+            makeObject(FP)
