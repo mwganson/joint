@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-#__version__ = "0.2021.11.26"
-#__version__ = "0.2021.11.26"
+__version__ = "0.2021.11.26.rev2"
+#__version__ = "0.2021.11.26.rev2"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
