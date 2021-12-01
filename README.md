@@ -38,6 +38,44 @@ Not to be confused with Finger Width (for Dovetail and Box Joints), this is the 
 ### Offset (float)
 Mating joints that are exactly the same size will be very difficult to assemble because the fit will be too tight.  The Offset property is used to increase/decrease the size of the objects that make up the joint.  You will need to experiment to determine the correct offset to use for your given situation, material used, glue used, etc.  On this note, care must be taken when making Dovetail Joints lest you end up with an impossible to assemble joint where the angles are such that the narrow end faces outward in all directions.
 
+## Joint (group)
+In this sections are properties related to the Joint objects, but not directly to either dimensioning or positioning.
+
+### AddSubType (enumeration) (readonly)
+This is for information only.  Values can be "Additive" or "Subtractive".  Currently, only the Tenons are Additive.  The rest are all Subtractive.  This is determined at the time of object creation and cannot be changed.  The difference comes into play when you use a pattern tool in Part Design, such as linear pattern or mirror.
+
+### Boolean (boolean)
+Default: True.  If set to False the cutting tool created is not cut from or fused with the object the face belongs to.  This might (or might not) be useful at times to be able to get at the cutting tool.
+
+### Claim Children (boolean)
+Default: False when in Part Design, True otherwise.  This only affects the view in the tree.  You can toggle this value to see the effect.
+
+### Edit Face (boolean trigger)
+Toggle this to True to bring up the face editor if you want to select a different face from the one originally selected when creating the joint object.  You can also double click the Joint object in the tree view to bring up this task dialog.
+
+### Face (Link Sub)
+This is a link to the face and to the object containing the face to which the joint is applied.
+
+### Joint Type (enumeration)
+This is an enumeration of the various joint types available.  This is normally selected during object creation when the macro is first run, but you can change it later here, too.  Options are: "Mortise", "Tenon", "Box Joint", "Dovetail Joint".  Note: the Tenon is an Additive type, so if you are using it in Part Design and you wish to make a pattern (array) of the Joint then you should delete the current joint and create a new one or else the pattern tool is likely to produce unexpected and unwanted results.  The other types are all Subtractive types and may be switched without issue.
+
+### Refine (boolean)
+This will appear in the Part Design in Part Design and in the Joint group if not in Part Design.  When True it removes some unnecessary coplanar edges from some faces.
+
+## Positioning (group)
+Here I have placed the properties related to positioning the joints along the face.  For Mortise and Tenon joint types these will not often be needed, but occasionally even with these types the joint will need to be rotated 90 degrees.  For Dovetail Joints extensive use of these properties will be required to produce a suitable mating joint.  All values are floats interpreted as millimeters or degrees.
+
+### Angle (float)
+The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local Z axis of the joint object.  The local Z axis extends straight up from the surface of the face.
+
+### Angle X (float)
+The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local X axis of the joint object.  The local X axis extends left to right as viewed from the front with the face on the xy_plane.  This property is usually needed (set to 90 degrees) for creating a mating Dovetail Joint.
+
+### Angle Y (float)
+The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local Y axis of the joint object.  The local Y axis extends front to back as viewed from the front with the face on the xy_plane.  This property is not usually needed and is included for the rare cases where it might be needed and for the sake of completeness.
+
+
+
 
 
 ## Changelog
