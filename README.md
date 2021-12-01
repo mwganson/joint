@@ -74,8 +74,20 @@ The angle of the joint objects (in degrees) relative to the face with the axis b
 ### Angle Y (float)
 The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local Y axis of the joint object.  The local Y axis extends front to back as viewed from the front with the face on the xy_plane.  This property is not usually needed and is included for the rare cases where it might be needed and for the sake of completeness.
 
+### Position (vector)
+This property controls the position of the joint objects relative to the face.  With the Dovetail Joints this property will be indispensible, but for the other joint types it will only be rarely needed.  Most of the time you will use the X property to position the fingers of the Dovetail and Box Joints left to right.  Dovetail Joints will rarely mate properly without adjusting the X property.  With Box Joint and Dovetail Joints you might also want to adjust the X position for symmetry on the edges and to ensure there are not tiny (sometimes disconnected) fragments on the ends.  The Y and Z properties will only be rarely needed.
 
+### Reversed (boolean)
+This property controls the direction of the joint objects relative to the face.  In some cases the object faces in the wrong direction, but this is automatically resolved because the Symmetric property defaults to True, so the objects extend in both directions by default.
 
+### Show Tool (boolean)
+This is False by default.  Set it temporarily to True to aid in positioning the joint objects.  You might also want to use this to set the joint objects projecting above the plane of the face rather than cutting into it, but in such cases you will need to carefully tweak the Width propertie to remove the extra joint objects created to either side for use in cutting partial fingers on the ends of the joint.
+
+### Symmetric (boolean)
+Default: True.  If True the joint objects project in both directions, above and into the face.
+
+### Use Odd (boolean)
+Default: False.  You will generally need to set this to True for the mating joints, especially for Dovetail Joints.  The joint objects are place by default on the even numbered positions: finger, empty space, finger, empty space, etc.  If Use Odd is True you get fingers at the odd numbed positions: empty space, finger, empty space, finger, etc.  The X sub property of the Position property can also be used in some cases for proper mating.
 
 
 ## Changelog
