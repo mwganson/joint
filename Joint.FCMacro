@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.11.26.rev2"
-#__version__ = "0.2021.11.26.rev2"
+__version__ = "0.2021.11.29"
+#__version__ = "0.2021.11.29"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -17,21 +17,21 @@ __version__ = "0.2021.11.26.rev2"
 #        obj.addProperty("App::PropertyString","AddSubType",jointGroup,"Additive, Subtractive type when using Part Design pattern tools -- set at time of object creation.")
 #        obj.setEditorMode("AddSubType",1)#readonly
 #        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint"]
-#        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=4
+#        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=5
 #        obj.addProperty("App::PropertyVector","Position","Positioning","XYZ position adjustments (internal coordinate system)")
 #        obj.addProperty("App::PropertyFloat","FingerWidth","Dimensions","Width of fingers (for Box Joints / Dovetail Joints only)").FingerWidth=5
 #        obj.addProperty("App::PropertyFloat","FingerAngle","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle=30
-#        obj.addProperty("App::PropertyFloat","FingerAngle2","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle2=0
-#        obj.addProperty("App::PropertyFloatConstraint","FingerAngle2Adjust","Dimensions","Width adjustment factor for FingerAngle2, default = 1.5").FingerAngle2Adjust = (1.5,-1e13,1e13,.1)
-#        obj.addProperty("App::PropertyFloatConstraint","Width","Dimensions","width of joint").Width=(3,1,10e13,1)
-#        obj.addProperty("App::PropertyFloatConstraint","Length","Dimensions","length of joint from tip of arc to tip of arc").Length=(2,1,10e13,1)
+#        obj.addProperty("App::PropertyFloat","FingerAngle2","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle2=30
+#        obj.addProperty("App::PropertyFloatConstraint","Width","Dimensions","width of joint").Width=(5,1,10e13,1)
+#        obj.addProperty("App::PropertyFloatConstraint","Length","Dimensions","length of joint from tip of arc to tip of arc").Length=(5,1,10e13,1)
 #        obj.addProperty("App::PropertyFloatConstraint","Offset","Dimensions","Clearance offset for adjusting the fit").Offset=(0,-10e13,10e13,.1)
 #        obj.addProperty("App::PropertyLinkSub","Face",jointGroup,"Selected face for the joint")
 #        obj.addProperty("App::PropertyBool","EditFace",jointGroup,"Trigger, toggle to bring up face editor").EditFace = False
 #        obj.addProperty("App::PropertyBool","Boolean",jointGroup,"Whether to fuse with or cut from base feature").Boolean = True
 #        obj.addProperty("App::PropertyBool","Symmetric","Positioning","Symmetric to plane (at depth in both directions)").Symmetric = True
 #        obj.addProperty("App::PropertyBool","Reversed","Positioning","Extrude in oppositie direction if True").Reversed = False
-#        obj.addProperty("App::PropertyBool","CutOdd","Positioning","(Box Joints / Dovetails only) cut odd fingers if True, else cut even fingers").CutOdd = False
+#        obj.addProperty("App::PropertyBool","UseOdd","Positioning","(Box Joints / Dovetails only) cut odd fingers if True, else cut even fingers").UseOdd = False
+#        obj.addProperty("App::PropertyBool","ShowTool","Positioning","To aid in positioning the cutting tool set this temporarily to True\nSet back to False after positioning tool to create the joint.").ShowTool = False
 #        obj.addProperty("App::PropertyFloatConstraint","Angle","Positioning","Rotation angle (in degrees) about the local Z axis").Angle = (0,-360,360,1)
 #        obj.addProperty("App::PropertyFloatConstraint","AngleX","Positioning","Rotation angle (in degrees) about the local X axis").AngleX = (0,-360,360,1)
 #        obj.addProperty("App::PropertyFloatConstraint","AngleY","Positioning","Rotation angle (in degrees) about the local Y axis").AngleY = (0,-360,360,1)
@@ -78,12 +78,12 @@ __version__ = "0.2021.11.26.rev2"
 #
 #    def hideProps(self,fp):
 #        '''hide properties unrelated to this type of joint'''
-#        propsToHide = ["FingerAngle","FingerAngle2","FingerWidth","CutOdd", "FingerAngle2Adjust"]
+#        propsToHide = ["FingerAngle","FingerWidth","UseOdd",]
 #        if fp.JointType in ["Mortise","Tenon"]:
 #            self.hideThem(fp,propsToHide,True)
 #        elif fp.JointType == "Box Joint":
 #            self.hideThem(fp,propsToHide,False)
-#            propsToHide = ["FingerAngle","FingerAngle2","FingerAngle2Adjust"]
+#            propsToHide = ["FingerAngle"]
 #            self.hideThem(fp,propsToHide,True)
 #        elif fp.JointType == "Dovetail Joint":
 #            self.hideThem(fp,propsToHide,False)
@@ -108,7 +108,7 @@ __version__ = "0.2021.11.26.rev2"
 #            return
 ##       thanks to openBrain on the FreeCAD forum for this next line of code
 #        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.CenterOfMass, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),face.Surface.Axis)))
-#        if fp.JointType == "Tenon":
+#        if fp.JointType == "Tenon" or fp.ShowTool:
 #            full_shape = object.Shape.fuse(shape) if fp.Boolean else shape
 #        else: #other types all require cuts
 #            full_shape = object.Shape.cut(shape) if fp.Boolean else shape
@@ -128,77 +128,68 @@ __version__ = "0.2021.11.26.rev2"
 #        boxes = []
 #        depth = fp.Depth if not fp.Symmetric else fp.Depth*2
 #        for n in range(0,num):
-#            if bool(n % 2 == 0 and fp.CutOdd) or bool(n % 2 == 1 and not fp.CutOdd):
+#            if bool(n % 2 == 0 and fp.UseOdd) or bool(n % 2 == 1 and not fp.UseOdd):
 #                continue
 #            x = -fp.Offset -fp.Width/2 + n * fp.FingerWidth
 #            y = -fp.Offset -fp.Length/2
 #            z = 0 if not fp.Symmetric else -fp.Depth
+#            z = -fp.Depth if fp.Reversed else z
 #            pt = FreeCAD.Vector(x,y,z).add(fp.Position)
 #            boxes.append(Part.makeBox(fp.FingerWidth+fp.Offset*2, fp.Length+fp.Offset, depth+fp.Offset*2,pt-FreeCAD.Vector(0,0,fp.Offset*2)))
 #        fusion = boxes[0].fuse(boxes[1:]) if len(boxes) > 1 else boxes[0]
 #        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
-#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
+#        fusion.rotate(FreeCAD.Vector(0,0,-fp.Depth/2),FreeCAD.Vector(0,1,0),fp.AngleY)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
-#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(1,0,0),fp.AngleX)
+#        fusion.rotate(FreeCAD.Vector(0,0,-fp.Depth/2),FreeCAD.Vector(1,0,0),fp.AngleX)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
 #        return fusion
 #
-#    def makeWedge(self,fp,wid,length,ht,pt):
-#        '''make a wedge/finger for the dovetail joints'''
-#        tanlength = math.tan(math.radians(-fp.FingerAngle))*length
-#        bottomLeft = FreeCAD.Vector(pt.x , pt.y, pt.z)
-#        topLeft = FreeCAD.Vector(pt.x - tanlength, pt.y + length, pt.z)
-#        bottomRight = FreeCAD.Vector(pt.x + wid - tanlength, pt.y,pt.z)
-#        topRight = FreeCAD.Vector(pt.x + wid, pt.y + length, pt.z)
-#        dist = math.tan(math.radians(fp.FingerAngle2))*ht
-#        bottomLeft2 = bottomLeft.add(FreeCAD.Vector(-dist,0,ht)) 
-#        topLeft2 = topLeft.add(FreeCAD.Vector(-dist,0,ht))
-#        bottomRight2 = bottomRight.add(FreeCAD.Vector(dist,0,ht))
-#        topRight2 = topRight.add(FreeCAD.Vector(dist,0,ht))
-#        adjust = FreeCAD.Vector(-dist*fp.FingerAngle2Adjust,0,0)
-#        topRight = topRight + adjust
-#        topRight2 = topRight2 + adjust
-#        bottomRight = bottomRight + adjust
-#        bottomRight2 = bottomRight2 + adjust
-#        left = Part.makeLine(bottomLeft,topLeft)
-#        right = Part.makeLine(topRight,bottomRight)
-#        bottom = Part.makeLine(bottomLeft,bottomRight)
-#        top = Part.makeLine(topLeft,topRight)
-#        top2 = Part.makeLine(topLeft2,topRight2)
-#        bottom2 = Part.makeLine(bottomLeft2,bottomRight2)
-#        left2 = Part.makeLine(top2.Vertex1.Point,bottom2.Vertex1.Point)
-#        right2 = Part.makeLine(top2.Vertex2.Point,bottom2.Vertex2.Point)
-#        wire = Part.Wire([left, top, right, bottom])
-#        face = Part.makeFace(wire, "Part::FaceMakerCheese")
-#        face = face.makeOffset2D(fp.Offset,join=2) if fp.Offset != 0 else face
-#        dir = FreeCAD.Vector(0,0,1) if not fp.Reversed else FreeCAD.Vector(0,0,-1)
-#        wire2 = Part.Wire([top2,right2,bottom2,left2])
-#        face2 = Part.makeFace(wire2,"Part::FaceMakerCheese")
-#        face2 = face2.makeOffset2D(fp.Offset,join=2) if fp.Offset != 0 else face2
-#        loft = Part.makeLoft([face.Wire1,face2.Wire1],True)
-#        return loft
+#    def makeWedge(self, fp, wid, length, ht, pt):
+#        '''support 2 angles for compound dovetails'''
+#        tanht = math.tan(math.radians(-fp.FingerAngle/2)) * ht / 2
+#        tanlength = math.tan(math.radians(-fp.FingerAngle2/2)) * length / 2
+#        frontLeftBottom = FreeCAD.Vector(-tanht,0,0)
+#        frontLeftTop = FreeCAD.Vector(tanht,0, ht)
+#        frontLeft = Part.makeLine(frontLeftBottom, frontLeftTop)
+#        topLeftBack = FreeCAD.Vector(tanht + tanlength, length, ht)
+#        topLeft = Part.makeLine(frontLeftTop, topLeftBack)
+#        topLeftDirection = topLeft.Vertex2.Point.sub(topLeft.Vertex1.Point)
+#        backLeftBottom = frontLeftBottom.add(topLeftDirection)
+#        backLeft = Part.makeLine(topLeftBack,backLeftBottom)
+#        bottomLeft = Part.makeLine(frontLeftBottom, backLeftBottom)
+#        leftWire = Part.Wire([bottomLeft,backLeft,topLeft,frontLeft])
+#        leftFace = Part.makeFace(leftWire,"Part::FaceMakerCheese")
+#        mirror = leftFace.mirror(FreeCAD.Vector(wid/2+leftFace.CenterOfMass.x,0,0),FreeCAD.Vector(1,0,0))
+#        loft = Part.makeLoft([leftWire,mirror.Wire1],True)
+#        loft.Placement.move(pt)
+#        symmetric_mirror = loft.mirror(pt,FreeCAD.Vector(0,0,1))
+#        if fp.Symmetric:
+#            return loft.fuse(symmetric_mirror)
+#        if not fp.Reversed:
+#            return symmetric_mirror
+#        else:
+#            return loft
 #
 #    def makeDovetailJoint(self,fp):
 #        '''make the dovetial joint shape'''
 #        num = fp.Width / (fp.FingerWidth)
 #        num = int(math.ceil(num))
 #        wedges = []
-#        depth = fp.Depth if not fp.Symmetric else fp.Depth*2
 #        for n in range(-1,num+1):
-#            if bool(n % 2 == 0 and fp.CutOdd) or bool(n % 2 == 1 and not fp.CutOdd):
+#            if bool(n % 2 == 0 and fp.UseOdd) or bool(n % 2 == 1 and not fp.UseOdd):
 #                continue
 #            x = -fp.Offset -fp.Width/2 + n * fp.FingerWidth
 #            y = -fp.Offset -fp.Length/2
-#            z = 0 if not fp.Symmetric else -fp.Depth
+#            z = 0
 #            pt = FreeCAD.Vector(x,y,z).add(fp.Position)
-#            wedges.append(self.makeWedge(fp, fp.FingerWidth+fp.Offset*2, fp.Length+fp.Offset, depth+fp.Offset,pt))
+#            wedges.append(self.makeWedge(fp, fp.FingerWidth+fp.Offset*2, fp.Length+fp.Offset, fp.Depth+fp.Offset,pt))
 #        fusion = wedges[0].fuse(wedges[1:]) if len(wedges) > 1 else wedges[0]
-#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
+#        fusion.rotate(FreeCAD.Vector(0,0,-fp.Depth/2),FreeCAD.Vector(0,0,1),fp.Angle)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
-#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
+#        fusion.rotate(FreeCAD.Vector(0,0,-fp.Depth/2),FreeCAD.Vector(0,1,0),fp.AngleY)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
-#        fusion.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(1,0,0),fp.AngleX)
+#        fusion.rotate(FreeCAD.Vector(0,0,-fp.Depth/2),FreeCAD.Vector(1,0,0),fp.AngleX)
 #        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
 #        return fusion
 #
@@ -221,14 +212,14 @@ __version__ = "0.2021.11.26.rev2"
 #        if fp.Offset != 0:
 #            face = face.makeOffset2D(fp.Offset)
 #        if fp.Reversed:
-#            dir = FreeCAD.Vector(0,0,1)
+#            direction = FreeCAD.Vector(0,0,-1)
 #        else:
-#            dir = FreeCAD.Vector(0,0,-1)
+#            direction = FreeCAD.Vector(0,0,1)
 #        if fp.JointType == "Mortise":
-#            dir = dir * (-1)
-#        extrude = face.extrude(dir*fp.Depth)
+#            direction = direction * (-1)
+#        extrude = face.extrude(direction*fp.Depth)
 #        if fp.Symmetric:
-#            extrude2 = face.extrude(dir*-1*fp.Depth)
+#            extrude2 = face.extrude(direction*-1*fp.Depth)
 #            extrude = extrude.fuse(extrude2)
 #        extrude.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),fp.AngleY)
 #        extrude = extrude.transformShape(extrude.Placement.toMatrix(),True)
