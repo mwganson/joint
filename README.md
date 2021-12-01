@@ -9,5 +9,6 @@ Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and ru
 Not yet available in the addon manager.  Install by placing the Joint.FCMacro into your macro folder.  On first run it will offer to create a new file called joint.py.  This file is needed for the Joint feature python objects to be parametric and functional upon reloading documents containing these objects.
 
 ## Changelog
+### 0.2021.11.30 == rework dovetail code
 ### 0.2021.11.26.rev2 == uncomment __version__ property
 ### 0.2021.11.26 == initial upload
