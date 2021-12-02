@@ -801,6 +801,9 @@ def makeObject(FP):
                     joint.Face = (selobj.Object, ["Face1"])
                     FreeCAD.Console.PrintError("Select 1 (planar) face of an object.\n")
                 joint.JointType = jType
+                if "Cantilever" in jType:
+                    joint.Depth = 15
+                    joint.Length = 3
         else:
             FreeCAD.Console.PrintMessage("No face selected to make a joint on.\n")
 
