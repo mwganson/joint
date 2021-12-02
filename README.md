@@ -117,6 +117,9 @@ It is highly recommended to have a fillet at the base of the Cantilever Hook.  T
 ### Shape Deflection (float)
 Default is 1.09. This is used in the formula to calculate the optimal undercut.  It is based on the fact we are using a rectangular cross-section for the Cantilever Hooks.
 
+### Taper (float)
+Optimal designs call for the hook to taper to a fraction of its thickness (Depth property) at the end as compared to the thickness at the base.  The default is to be 0.5 of the base thickness at the tip.  Permissible ranges go from 0.01 to 1.0 (constant thickness through length of hook).  Recommended ranges are from 0.3 to 0.5.
+
 ### Undercut (float -- readonly)
 This value is calculated for you based on the Depth, Length and the two Deflection properties discussed above.  The undercut is the amount that the hook must be able to flex during insertion and removal.  It's also how much "bite" the hook has when in the fully inserted position.  The Width property does not come into play when calculating the undercut, so you can go wider for more durability, space permitting, without affecting the undercut except to make the hook wider.
 
@@ -129,6 +132,7 @@ This property allows to customize the Cantilever Hook and Mate types by tweaking
 
 
 ## Changelog
+### 0.2021.12.2.rev2 == add Taper property to Cantilever Hook types
 ### 0.2021.12.2 == add UndercutAngle and UndercutPositionTweak properties
 ### 0.2021.12.1 == add cantilever hook and mate joint types (latches)
 ### 0.2021.11.30 == rework dovetail code
