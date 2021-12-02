@@ -1,5 +1,5 @@
 # Macro Joint (Work in progress)
-Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, and Dovetail Joint.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.<br/>
+Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, Dovetail Joint, and Cantilever Hook and Mate.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.<br/>
 <br/>
 <img src="macro_joint_scr1.png" alt="screenshot"><br/>
 
@@ -20,7 +20,7 @@ Some properties are hidden for some joints where they are not used.  For example
 Here I tried to put the properties related to the dimensions of the joints in one place.  All of these are float values interpreted as millimeters.  If you experiment with these values you can easily see which dimension each controls.
 
 ### Depth (float)
-Depth is how deep into the face the joint will be or if it's a Tenon how far above the face it will extend.
+Depth is how deep into the face the joint will be or if it's a Tenon or Cantilever Hook how far above the face it will extend.
 
 ### Finger Angle (float)
 ### Finger Angle2 (float)
@@ -30,13 +30,13 @@ Only used with Dovetail Joint types.  Finger Angle is the angle from the face to
 Used with Dovetail Joints and Box Joints.  It's the width of each finger.  For Box Joints this is very straight forward.  For Dovetail Joints it's more complicated.  With Dovetail Joints its the distance from the middle of the left side of the finger to the middle of the right side of the finger, when viewed from the front with the face on the xy_plane.  Note: the strongest joints are usually the Box Joints, and (up to a point), generally stronger the more fingers you have.  Dovetail Joints are often for cosmetic purposes unless it is a working joint where 2 surfaces are sliding against each other, such as with the cross slide of a lathe.
 
 ### Length (float)
-This is the distance from the front to the back when viewed from the front with the face on the xy_plane.
+This is the distance from the front to the back when viewed from the front with the face on the xy_plane.  For Cantilever Hook and Mate types this is the measurement of the baseline that butts against the face, not counting the fillets.  The longer this value the longer can be the calculated undercut because the material will have more flexibility the longer it is.
 
 ### Width (float)
-Not to be confused with Finger Width (for Dovetail and Box Joints), this is the total width of the joint.  For Mortise and Tenons this is the width of those objects.  For Dovetail and Box Joints this is the total width of all the fingers combined (and the spaces in between).  The number of fingers depends on this property along with the Finger Width property for the finger joint types, but there will always only be one object for Mortise and Tenons.  Of course, if you want more you can always position the Mortise/Tenon to one side and use a linear pattern to create more.  See the Position property for more on this.
+Not to be confused with Finger Width (for Dovetail and Box Joints), this is the total width of the joint.  For Mortise and Tenons this is the width of those objects.  For Dovetail and Box Joints this is the total width of all the fingers combined (and the spaces in between).  The number of fingers depends on this property along with the Finger Width property for the finger joint types, but there will always only be one object for Mortise and Tenons.  Of course, if you want more you can always position the Mortise/Tenon to one side and use a linear pattern to create more.  See the Position property for more on this.  For Cantilever types the wider the better as this will add strength to the hook.
 
 ### Offset (float)
-Mating joints that are exactly the same size will be very difficult to assemble because the fit will be too tight.  The Offset property is used to increase/decrease the size of the objects that make up the joint.  You will need to experiment to determine the correct offset to use for your given situation, material used, glue used, etc.  On this note, care must be taken when making Dovetail Joints lest you end up with an impossible to assemble joint where the angles are such that the narrow end faces outward in all directions.
+Mating joints that are exactly the same size will be very difficult to assemble because the fit will be too tight.  The Offset property is used to increase/decrease the size of the objects that make up the joint.  You will need to experiment to determine the correct offset to use for your given situation, material used, glue used, etc.  On this note, care must be taken when making Dovetail Joints lest you end up with an impossible to assemble joint where the angles are such that the narrow end faces outward in all directions.  This is hidden and unused for Cantilever types, which have a special property called Cantilever Mate Clearance, which is applied to the mate joint.
 
 ## Joint (group)
 In this sections are properties related to the Joint objects, but not directly to either dimensioning or positioning.
@@ -72,7 +72,7 @@ The angle of the joint objects (in degrees) relative to the face with the axis b
 The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local X axis of the joint object.  The local X axis extends left to right as viewed from the front with the face on the xy_plane.  This property is usually needed (set to 90 degrees) for creating a mating Dovetail Joint.
 
 ### Angle Y (float)
-The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local Y axis of the joint object.  The local Y axis extends front to back as viewed from the front with the face on the xy_plane.  This property is not usually needed and is included for the rare cases where it might be needed and for the sake of completeness.
+The angle of the joint objects (in degrees) relative to the face with the axis being the center of the joint objects and the local Y axis of the joint object.  The local Y axis extends front to back as viewed from the front with the face on the xy_plane.  This property is likely to be most useful when working with Cantilever Hook and Mate types.
 
 ### Position (vector)
 This property controls the position of the joint objects relative to the face.  With the Dovetail Joints this property will be indispensible, but for the other joint types it will only be rarely needed.  Most of the time you will use the X property to position the fingers of the Dovetail and Box Joints left to right.  Dovetail Joints will rarely mate properly without adjusting the X property.  With Box Joint and Dovetail Joints you might also want to adjust the X position for symmetry on the edges and to ensure there are not tiny (sometimes disconnected) fragments on the ends.  The Y and Z properties will only be rarely needed.
@@ -87,7 +87,37 @@ This is False by default.  Set it temporarily to True to aid in positioning the 
 Default: True.  If True the joint objects project in both directions, above and into the face.
 
 ### Use Odd (boolean)
-Default: False.  You will generally need to set this to True for the mating joints, especially for Dovetail Joints.  The joint objects are place by default on the even numbered positions: finger, empty space, finger, empty space, etc.  If Use Odd is True you get fingers at the odd numbed positions: empty space, finger, empty space, finger, etc.  The X sub property of the Position property can also be used in some cases for proper mating.
+Default: False.  You will generally need to set this to True for the mating joints, especially for Dovetail Joints.  The joint objects are place by default on the even numbered positions: finger, empty space, finger, empty space, etc.  If Use Odd is True you get fingers at the odd numbed positions: empty space, finger, empty space, finger, etc.  The X sub property of the Position property can also be used in some cases for proper mating.  Unused for Mortise, Tenon, and Cantilever joint types.
+
+## Cantilever (group)
+Here we have special properties associated only with the Cantilever Hook and Cantilever Mate types.  Care must be taken in designing these joint types that the hook is oriented properly with the Mate part and that there is sufficient clearance during insertion and removal for the hook to be able to flex as needed.  It is also critical that the hook returns to an unstressed position upon full insertion for improved durability.
+
+### Bottom Fillet Angle (float)
+This is the angle, in degrees, of the fillet at the bottom of the Cantilever Hook relative to where it connects to the bottom (slanted) edge of the hook.  The other fillet is tangent to the opposite edge because it's a straight edge, but since this bottom edge is at an angle it is not a tangent connection.  Default is 110 degrees.  You can experiment to see the difference it makes.<br/>
+<br/>
+It is worth noting that the reason the top edge is straight and the bottom edge is angled is to improve durability.  Research has shown that Cantilever Hook designs with a constant thickness will break faster than those that are tapered to about 1/2 the thickness (Length property) at the base of the hook.  Being tapered towards the end allows for greater flexibility of the hook during inserting and removing, thus improving the stress distribution rather than having most of the stress near the base, which is the weak point.
+
+### Cantilever Mate Clearance (float)
+This is the clearance (in millimeters) applied to the Cantilever Mate types (not to the Hooks, only to the Mates).  Default is 0.5 mm, which is the recommended tolerance for FDM 3D printers.  Use 0.3 mm for other 3D printer types.  All of this is untested at this point as I haven't yet made any test prints.
+
+### Head Space Adjust (float)
+Default: 0.  Use this to adjust the amount of free space between the tip of the hook and the back wall of the Cantilever Mate.  Bear in mind when adjust this that the hook will be flexing upon insertion and removal.  If in so doing it rubs against the back wall it might prevent it from functioning properly and might also lead to the hook being in a constant state of stress while fully inserted.
+
+### Material Deflection (float)
+The Undercut property is readonly and is calculated for you automatically, based on some formulas from a guide book from MIT on designing snap joints.  More flexible materials can use a higher Material Deflection value while stiffer materials will need a smaller value.  The Undercut property cannot be modified directly, but by modifying this property you can achieve longer or shorter undercuts.  The longer the undercut the more the hook will bend during latching.  Obviously, if you bend it too far it will break, but if the undercut is too short the latch might not hold the mated parts together well enough.  For a design that will be seldom opened and closed you can probably risk a bit more undercut.
+
+### Nose Angle (float)
+This is the angle of the nose, the tip of the hook.  Default is 60 degrees.  Adjusting the angle also adjusts the length of the nose, but does not affect the undercut calculation.
+
+### Radius Factor (float)
+It is highly recommended to have a fillet at the base of the Cantilever Hook.  This property sets the fillet radius to 60% of the Length property (the distance between the fillets).  This 60% ratio is optimal due to diminishing returns at higher percentages, but a higher ratio can be even better, but at the expense of some other durability concerns with some manufacturing processes due to residual stresses.
+
+### Shape Deflection (float)
+Default is 1.09. This is used in the formula to calculate the optimal undercut.  It is based on the fact we are using a rectangular cross-section for the Cantilever Hooks.
+
+### Undercut (float -- readonly)
+This value is calculated for you based on the Depth, Length and the two Deflection properties discussed above.  The undercut is the amount that the hook must be able to flex during insertion and removal.  It's also how much "bite" the hook has when in the fully inserted position.  The Width property does not come into play when calculating the undercut, so you can go wider for more durability, space permitting, without affecting the undercut except to make the hook wider.
+
 
 
 ## Changelog
