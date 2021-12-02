@@ -89,7 +89,7 @@ __version__ = "0.2021.12.1.rev2"
 #        '''hide properties unrelated to this type of joint'''
 #        fingerProps = ["FingerAngle","FingerAngle2","FingerWidth","UseOdd",]
 #        dovetailProps = ["FingerAngle","FingerAngle2"]
-#        cantileverProps = ["BottomFilletAngle","CantileverMateClearance","MaterialDeflection","NoseAngle","RadiusFactor","ShapeDeflection","Undercut"]
+#        cantileverProps = ["HeadSpaceAdjust","BottomFilletAngle","CantileverMateClearance","MaterialDeflection","NoseAngle","RadiusFactor","ShapeDeflection","Undercut"]
 #        notLatchProps = ["Offset"]
 #        if fp.JointType in ["Mortise","Tenon"]:
 #            self.hideThem(fp,fingerProps,True)
