@@ -2,6 +2,8 @@
 Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, Dovetail Joint, and Cantilever Hook and Mate.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.<br/>
 <br/>
 <img src="macro_joint_scr1.png" alt="screenshot"><br/>
+<br/>
+<img src="macro_joint_scr2.png" alt="cantilever hook and mate"><br/>
 
 ## Toolbar Icon
 <a href="Macro_Joint_Icon.svg">Download</a> the toolbar icon: <img src="Macro_Joint_Icon.svg" alt="toolbar icon"><br/>
