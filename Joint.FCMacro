@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.1"
-#__version__ = "0.2021.12.1"
+__version__ = "0.2021.12.1.rev2"
+#__version__ = "0.2021.12.1.rev2"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -19,6 +19,7 @@ __version__ = "0.2021.12.1"
 #        obj.addProperty("App::PropertyFloat", "Undercut","Cantilever","Cantilever undercut (readonly) calculated value")
 #        obj.setEditorMode("Undercut",1) #readonly
 #        obj.addProperty("App::PropertyFloatConstraint","RadiusFactor","Cantilever","Radius factor * length = radius of filet at base").RadiusFactor =(0.6,-float("inf"),float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","HeadSpaceAdjust","Cantilever","(Cantilever Mate only) adjusts the amount of free space between the hook nose tip and the mate back wall").HeadSpaceAdjust =(0,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloat","NoseAngle","Cantilever","Angle of cantilever hook nose, in degrees").NoseAngle = 60
 #        obj.addProperty("App::PropertyFloatConstraint","MaterialDeflection","Cantilever","Permissible deflection of material, default = 2%").MaterialDeflection = (0.02,-float("inf"),float("inf"),.01)
 #        obj.addProperty("App::PropertyFloatConstraint","CantileverMateClearance","Cantilever","Clearance for hook / mate.  Default 0.5 mm (for FDM), recommended 0.3 mm for other 3D printer types").CantileverMateClearance = (.5,-float("inf"),float("inf"),.1)
@@ -304,7 +305,7 @@ __version__ = "0.2021.12.1"
 #        topArcPt2 = topArc.Vertex2.Point.add(FreeCAD.Vector(0,offset,0))
 #        undercutBottom2 = undercutBottom.add(FreeCAD.Vector(-offset,offset,0))
 #        undercutTop2 = undercutTop.add(FreeCAD.Vector(-offset,offset,0))
-#        topRight = FreeCAD.Vector(noseTop.x + undercut, undercutTop.y + offset,0)
+#        topRight = FreeCAD.Vector(noseTop.x + undercut + fp.HeadSpaceAdjust, undercutTop.y + offset,0)
 #        bottomRight = FreeCAD.Vector(topRight.x, baselineBottom.y - offset, 0)
 #        baselineBottom2 = baselineBottom.add(FreeCAD.Vector(0, -offset, 0))
 #
