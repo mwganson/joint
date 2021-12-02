@@ -118,9 +118,16 @@ Default is 1.09. This is used in the formula to calculate the optimal undercut. 
 ### Undercut (float -- readonly)
 This value is calculated for you based on the Depth, Length and the two Deflection properties discussed above.  The undercut is the amount that the hook must be able to flex during insertion and removal.  It's also how much "bite" the hook has when in the fully inserted position.  The Width property does not come into play when calculating the undercut, so you can go wider for more durability, space permitting, without affecting the undercut except to make the hook wider.
 
+### Undercut Angle (float)
+This is the angle of the undercut (default: 0 degrees).  A negative angle will make removal easier while a positive angle makes for a more permanent joint.  Care must be taken when setting a positive aggressive angle to ensure there is room for the hook to slide into position on insertion and not remain in a stressed position.  For this, the Undercut Position Tweak can be used to tweak the position of the undercut.  Take note also: the joint will necessarily be looser if more clearance is needed for the hook to snap into place when using positive angles for the undercut.  Some trial and error is likely to be needed.
+
+### Undercut Position Tweak (float)
+This property allows to customize the Cantilever Hook and Mate types by tweaking the position of the undercut.  Move it out a bit further to improve the flexibility of the hook or in a little closer if you want a shorter hook.  But beware that if the hook is too short for the flexibility of the material being used it will be more prone to breaking.  If an aggressive undercut angle (positive value) is used this property should be also used to give the hook a bit more clearance to be able to snap into position upon insertion.
+
 
 
 ## Changelog
+### 0.2021.12.2 == add UndercutAngle and UndercutPositionTweak properties
 ### 0.2021.12.1 == add cantilever hook and mate joint types (latches)
 ### 0.2021.11.30 == rework dovetail code
 ### 0.2021.11.26.rev2 == uncomment __version__ property
