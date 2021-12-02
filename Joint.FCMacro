@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.2"
-#__version__ = "0.2021.12.2"
+__version__ = "0.2021.12.2.rev2"
+#__version__ = "0.2021.12.2.rev2"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -22,6 +22,7 @@ __version__ = "0.2021.12.2"
 #        obj.addProperty("App::PropertyFloatConstraint","HeadSpaceAdjust","Cantilever","(Cantilever Mate only) adjusts the amount of free space between the hook nose tip and the mate back wall").HeadSpaceAdjust =(0,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloat","UndercutAngle","Cantilever","(Cantilver only) adjust angle of undercut")
 #        obj.addProperty("App::PropertyFloatConstraint","UndercutPositionTweak","Cantilever","(Cantilever only) adjust position of undercut").UndercutPositionTweak = (0,-float("inf"),float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","Taper","Cantilever","(Cantilever Hook) thickness of hook end compared to hook base, as a ratio.  default: 0.5").Taper = (0.5,0.01,1.0,0.01)
 #        obj.addProperty("App::PropertyFloat","NoseAngle","Cantilever","Angle of cantilever hook nose, in degrees").NoseAngle = 60
 #        obj.addProperty("App::PropertyFloatConstraint","MaterialDeflection","Cantilever","Permissible deflection of material, default = 2%").MaterialDeflection = (0.02,-float("inf"),float("inf"),.001)
 #        obj.addProperty("App::PropertyFloatConstraint","CantileverMateClearance","Cantilever","Clearance for hook / mate.  Default 0.5 mm (for FDM), recommended 0.3 mm for other 3D printer types").CantileverMateClearance = (.5,-float("inf"),float("inf"),.1)
@@ -91,7 +92,7 @@ __version__ = "0.2021.12.2"
 #        '''hide properties unrelated to this type of joint'''
 #        fingerProps = ["FingerAngle","FingerAngle2","FingerWidth","UseOdd",]
 #        dovetailProps = ["FingerAngle","FingerAngle2"]
-#        cantileverProps = ["UndercutAngle","UndercutPositionTweak","HeadSpaceAdjust","BottomFilletAngle","CantileverMateClearance","MaterialDeflection","NoseAngle","RadiusFactor","ShapeDeflection","Undercut"]
+#        cantileverProps = ["Taper","UndercutAngle","UndercutPositionTweak","HeadSpaceAdjust","BottomFilletAngle","CantileverMateClearance","MaterialDeflection","NoseAngle","RadiusFactor","ShapeDeflection","Undercut"]
 #        notLatchProps = ["Offset"]
 #        if fp.JointType in ["Mortise","Tenon"]:
 #            self.hideThem(fp,fingerProps,True)
@@ -240,7 +241,8 @@ __version__ = "0.2021.12.2"
 #        undercutBottom = FreeCAD.Vector(uat + upt + radius + depth, length/2, 0)
 #        undercutTop = FreeCAD.Vector(upt + radius + depth, length/2 + undercut, 0)
 #        undercutRight = FreeCAD.Vector(radius + depth + undercut, length/2 + undercut, 0)
-#        noseBottom = FreeCAD.Vector(radius + depth + undercut + math.tan(math.radians(angle))*undercut, 0, 0)
+#        noseBottomY = -length/2 + (1-fp.Taper) * length
+#        noseBottom = FreeCAD.Vector(radius + depth + undercut + math.tan(math.radians(angle))*undercut, noseBottomY, 0)
 #        noseTop = FreeCAD.Vector(radius + depth + undercut + math.tan(math.radians(angle))*undercut, length/2, 0)
 #        ## Edges
 #        bottomArc = Part.makeCircle(radius,filletCenterBottom,FreeCAD.Vector(0,0,1),fp.BottomFilletAngle,180)
