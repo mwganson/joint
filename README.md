@@ -91,6 +91,7 @@ Default: False.  You will generally need to set this to True for the mating join
 
 
 ## Changelog
+### 0.2021.12.1 == add cantilever hook and mate joint types (latches)
 ### 0.2021.11.30 == rework dovetail code
 ### 0.2021.11.26.rev2 == uncomment __version__ property
 ### 0.2021.11.26 == initial upload
