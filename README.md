@@ -132,6 +132,7 @@ This property allows to customize the Cantilever Hook and Mate types by tweaking
 
 
 ## Changelog
+### 0.2021.12.2.rev3 == rework the way cantilever mate face is made
 ### 0.2021.12.2.rev2 == add Taper property to Cantilever Hook types
 ### 0.2021.12.2 == add UndercutAngle and UndercutPositionTweak properties
 ### 0.2021.12.1 == add cantilever hook and mate joint types (latches)
