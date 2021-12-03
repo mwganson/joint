@@ -97,7 +97,7 @@ Here we have special properties associated only with the Cantilever Hook and Can
 ### Bottom Fillet Angle (float)
 This is the angle, in degrees, of the fillet at the bottom of the Cantilever Hook relative to where it connects to the bottom (slanted) edge of the hook.  The other fillet is tangent to the opposite edge because it's a straight edge, but since this bottom edge is at an angle it is not a tangent connection.  Default is 110 degrees.  You can experiment to see the difference it makes.<br/>
 <br/>
-It is worth noting that the reason the top edge is straight and the bottom edge is angled is to improve durability.  Research has shown that Cantilever Hook designs with a constant thickness will break faster than those that are tapered to about 1/2 the thickness (Length property) at the base of the hook.  Being tapered towards the end allows for greater flexibility of the hook during inserting and removing, thus improving the stress distribution rather than having most of the stress near the base, which is the weak point.
+It is worth noting that the reason the top edge is straight and the bottom edge is angled is to improve durability.  Research has shown that Cantilever Hook designs with a constant thickness will break faster than those that are tapered to about 30% of the thickness (Length property) at the base of the hook.  Being tapered towards the end allows for greater flexibility of the hook during inserting and removing, thus improving the stress distribution rather than having most of the stress near the base, which is the weak point.
 
 ### Cantilever Mate Clearance (float)
 This is the clearance (in millimeters) applied to the Cantilever Mate types (not to the Hooks, only to the Mates).  Default is 0.5 mm, which is the recommended tolerance for FDM 3D printers.  Use 0.3 mm for other 3D printer types.  All of this is untested at this point as I haven't yet made any test prints.
@@ -118,7 +118,7 @@ It is highly recommended to have a fillet at the base of the Cantilever Hook.  T
 Default is 1.09. This is used in the formula to calculate the optimal undercut.  It is based on the fact we are using a rectangular cross-section for the Cantilever Hooks.
 
 ### Taper (float)
-Optimal designs call for the hook to taper to a fraction of its thickness (Depth property) at the end as compared to the thickness at the base.  The default is to be 0.5 of the base thickness at the tip.  Permissible ranges go from 0.01 to 1.0 (constant thickness through length of hook).  Recommended ranges are from 0.3 to 0.5.
+Optimal designs call for the hook to taper to a fraction of its thickness (Depth property) at the end as compared to the thickness at the base.  The default is to be 0.3 of the base thickness at the tip.  Permissible ranges go from 0.01 to 1.0 (constant thickness through length of hook).  Recommended ranges are from 0.3 to 0.5.
 
 ### Undercut (float -- readonly)
 This value is calculated for you based on the Depth, Length and the two Deflection properties discussed above.  The undercut is the amount that the hook must be able to flex during insertion and removal.  It's also how much "bite" the hook has when in the fully inserted position.  The Width property does not come into play when calculating the undercut, so you can go wider for more durability, space permitting, without affecting the undercut except to make the hook wider.
@@ -132,7 +132,7 @@ This property allows to customize the Cantilever Hook and Mate types by tweaking
 
 
 ## Changelog
-### 0.2021.12.2.rev3 == rework the way cantilever mate face is made
+### 0.2021.12.2.rev3 == rework the way cantilever mate face is made, set Taper to 0.3 default
 ### 0.2021.12.2.rev2 == add Taper property to Cantilever Hook types
 ### 0.2021.12.2 == add UndercutAngle and UndercutPositionTweak properties
 ### 0.2021.12.1 == add cantilever hook and mate joint types (latches)
