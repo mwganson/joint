@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.2.rev3"
-#__version__ = "0.2021.12.2.rev3"
+__version__ = "0.2021.12.3"
+#__version__ = "0.2021.12.3"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -22,12 +22,18 @@ __version__ = "0.2021.12.2.rev3"
 #        obj.addProperty("App::PropertyFloatConstraint","HeadSpaceAdjust","Cantilever","(Cantilever Mate only) adjusts the amount of free space between the hook nose tip and the mate back wall").HeadSpaceAdjust =(0,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloat","UndercutAngle","Cantilever","(Cantilver only) adjust angle of undercut")
 #        obj.addProperty("App::PropertyFloatConstraint","UndercutPositionTweak","Cantilever","(Cantilever only) adjust position of undercut").UndercutPositionTweak = (0,-float("inf"),float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","SlotBottom","Annular","Annular Hook only - position of bottom of slot as ratio of overall height, default = 0.25").SlotBottom = (0.25,0,1,.05)
+#        obj.addProperty("App::PropertyFloatConstraint","SlotToolFilletRadius","Annular","Annular Hook only - radius if fillets applied to slot cutting tool, default = .5").SlotToolFilletRadius = (.5,0,float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","Scale",jointGroup,"Scale factor, default = 1.0 - be advised: what works at one scale might not work so well at another").Scale = (1.0,-float("inf"),float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","SlotAngle","Annular","Annular Hook only - angle of slot cutting tool, e.g. 90 degrees would cut 1/4 of the way around").SlotAngle = (20,-360,360,1)
+#        obj.addProperty("App::PropertyFloatConstraint","DiameterTweak","Annular","Annular types only - tweak diameter of revolved faces").DiameterTweak = (0,-float("inf"),float("inf"),.1)
+#        obj.addProperty("App::PropertyIntegerConstraint","SlotCount","Annular","Annular Hook only - number of slots to cut").SlotCount = (6,0,100,1)
 #        obj.addProperty("App::PropertyFloatConstraint","Taper","Cantilever","(Cantilever Hook) thickness of hook end compared to hook base, as a ratio.  default: 0.3").Taper = (0.3,0.01,1.0,0.01)
 #        obj.addProperty("App::PropertyFloat","NoseAngle","Cantilever","Angle of cantilever hook nose, in degrees").NoseAngle = 60
 #        obj.addProperty("App::PropertyFloatConstraint","MaterialDeflection","Cantilever","Permissible deflection of material, default = 2%").MaterialDeflection = (0.02,-float("inf"),float("inf"),.001)
 #        obj.addProperty("App::PropertyFloatConstraint","CantileverMateClearance","Cantilever","Clearance for hook / mate.  Default 0.5 mm (for FDM), recommended 0.3 mm for other 3D printer types").CantileverMateClearance = (.5,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloatConstraint","ShapeDeflection","Cantilever","Deflection factor for rectangular cross section cantilevers, default = 1.09").ShapeDeflection = (1.09,-float("inf"),float("inf"),.01)
-#        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate"]
+#        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook", "Annular Mate"]
 #        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=5
 #        obj.addProperty("App::PropertyVector","Position","Positioning","XYZ position adjustments (internal coordinate system)")
 #        obj.addProperty("App::PropertyFloat","FingerWidth","Dimensions","Width of fingers (for Box Joints / Dovetail Joints only)").FingerWidth=5
@@ -94,21 +100,38 @@ __version__ = "0.2021.12.2.rev3"
 #        dovetailProps = ["FingerAngle","FingerAngle2"]
 #        cantileverProps = ["Taper","UndercutAngle","UndercutPositionTweak","HeadSpaceAdjust","BottomFilletAngle","CantileverMateClearance","MaterialDeflection","NoseAngle","RadiusFactor","ShapeDeflection","Undercut"]
 #        notLatchProps = ["Offset"]
+#        annularProps = ["SlotToolFilletRadius","DiameterTweak","SlotAngle","SlotBottom","SlotCount"]
+#        notAnnularProps = ["Width"]
 #        if fp.JointType in ["Mortise","Tenon"]:
+#            self.hideThem(fp,notAnnularProps,False)
+#            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,True)
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Box Joint":
+#            self.hideThem(fp,notAnnularProps,False)
+#            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,False)
 #            self.hideThem(fp,dovetailProps,True)
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Dovetail Joint":
+#            self.hideThem(fp,notAnnularProps,False)
+#            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,False)
 #            self.hideThem(fp,dovetailProps,False)
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif "Cantilever" in fp.JointType:
+#            self.hideThem(fp,notAnnularProps,False)
+#            self.hideThem(fp,annularProps,True)
+#            self.hideThem(fp,fingerProps,True)
+#            self.hideThem(fp,dovetailProps,True)
+#            self.hideThem(fp,cantileverProps, False)
+#            self.hideThem(fp,notLatchProps,True)
+#        elif "Annular" in fp.JointType:
+#            self.hideThem(fp,notAnnularProps,True)
+#            self.hideThem(fp,annularProps,False)
 #            self.hideThem(fp,fingerProps,True)
 #            self.hideThem(fp,dovetailProps,True)
 #            self.hideThem(fp,cantileverProps, False)
@@ -133,12 +156,17 @@ __version__ = "0.2021.12.2.rev3"
 #            shape = self.makeCantileverHook(fp)
 #        elif fp.JointType == "Cantilever Mate":
 #            shape = self.makeCantileverMate(fp)
+#        elif fp.JointType == "Annular Hook":
+#            shape = self.makeAnnularHook(fp)
+#        elif fp.JointType == "Annular Mate":
+#            shape = self.makeAnnularMate(fp)
 #        else:
 #            FreeCAD.Console.PrintError(f"Unsupported joint type: {fp.JointType}\n")
 #            return
+#        shape = shape.scale(fp.Scale) if fp.Scale != 1.0 else shape
 ##       thanks to openBrain on the FreeCAD forum for this next line of code
 #        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.CenterOfMass, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),face.Surface.Axis)))
-#        if fp.JointType == "Tenon" or fp.ShowTool or fp.JointType == "Cantilever Hook":
+#        if fp.JointType == "Tenon" or fp.ShowTool or fp.JointType == "Cantilever Hook" or fp.JointType == "Annular Hook":
 #            full_shape = object.Shape.fuse(shape) if fp.Boolean else shape
 #        else: #other types all require cuts
 #            full_shape = object.Shape.cut(shape) if fp.Boolean else shape
@@ -256,11 +284,73 @@ __version__ = "0.2021.12.2.rev3"
 #        hookBaseline = Part.makeLine(topArc.Vertex1.Point,bottomArc.Vertex2.Point)
 #        wire = Part.Wire([hookBaseline, topArc, hookTop, hookNoseLeft, hookNoseTop, hookNoseSlant, hookNoseBottom, hookBottom, bottomArc])
 #        face = Part.makeFace(wire,"Part::FaceMakerCheese")
-#        face.Placement.move(fp.Position)
 #        return face
+#
+#    def makeAnnularHook(self,fp):
+#        face = self.makeCantileverHookFace(fp)
+#        direction = FreeCAD.Vector(1,0,0)
+#        pt = FreeCAD.Vector(0, face.BoundBox.YMin - fp.DiameterTweak, 0)
+#        revolve = face.revolve(pt,direction,180)
+#        revolve = revolve.fuse(revolve.mirror(pt,FreeCAD.Vector(0,0,1)))
+#        revolve.Placement.move(pt*-1) #centers at pt, axis of rotation
+#        revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        #at this point the object is oriented horizontally and centered on the origin
+#        #will be rotated vertically in a later step
+#        wid = revolve.BoundBox.XLength #overall height, once rotated
+#        ht = revolve.BoundBox.ZLength
+#        length = revolve.BoundBox.YLength
+#        btPos = wid * fp.SlotBottom #bottom position of slots to be cut
+#        #fp.SlotAngle will be angle of slots
+#        #fp.SlotCount will be number of slots to cut
+#        centerEdge = Part.makeLine(FreeCAD.Vector(btPos,0,0),FreeCAD.Vector(btPos,length,0))
+#        topEdge = Part.makeLine(FreeCAD.Vector(btPos,length,0),FreeCAD.Vector(wid,length,0))
+#        rightEdge = Part.makeLine(FreeCAD.Vector(wid,length,0),FreeCAD.Vector(wid,0,0))
+#        bottomEdge = Part.makeLine(FreeCAD.Vector(wid,0,0),FreeCAD.Vector(btPos,0,0))
+#        wire = Part.Wire([centerEdge,topEdge,rightEdge,bottomEdge])
+#        face = Part.makeFace(wire,"Part::FaceMakerCheese")
+#        slotTool = face.revolve(centerEdge.Vertex1.Point,FreeCAD.Vector(1,0,0),fp.SlotAngle)
+#        slotTool = slotTool.makeFillet(fp.SlotToolFilletRadius,[slotTool.Edge2,slotTool.Edge3])
+#        toolCopies = Part.Shape()
+#        for ii in range(0,fp.SlotCount):
+#            copy = slotTool.copy()
+#            copy.rotate(centerEdge.Vertex1.Point,FreeCAD.Vector(1,0,0), ii * (360 / fp.SlotCount))
+#            if toolCopies.isNull():
+#                toolCopies = copy
+#            else:
+#                toolCopies = toolCopies.fuse(copy)
+##        Part.show(wire,"wire")
+##        Part.show(slotTool,"slotTool")
+##        Part.show(revolve,"revolve")
+##        Part.show(toolCopies,"toolCopies")
+#        if not toolCopies.isNull():
+#            revolve = revolve.cut(toolCopies)
+#        mirror = revolve.mirror(FreeCAD.Vector(0,0,0),FreeCAD.Vector(-1,0,0))
+#        if fp.Symmetric:
+#            revolve = revolve.fuse(mirror)
+#        elif fp.Reversed:
+#            revolve = mirror
+#        cog = mirror.Face1.CenterOfGravity
+#        revolve.Placement.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),90)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(0,0,1),fp.Angle)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(0,1,0),fp.AngleY)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(1,0,0),fp.AngleX)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.Placement.move(fp.Position)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        return revolve
 #
 #    def makeCantileverHook(self,fp):
 #        face = self.makeCantileverHookFace(fp)
+#        face.Placement.move(fp.Position)
 #        direction = FreeCAD.Vector(0,0,1)
 #        extrude = face.extrude(direction*fp.Width)
 #        if fp.Symmetric or fp.Reversed:
@@ -288,7 +378,41 @@ __version__ = "0.2021.12.2.rev3"
 #        extrude = extrude.transformShape(extrude.Placement.toMatrix(),True)
 #        return extrude
 #
-#    def makeCantileverMate(self,fp):
+#    def makeAnnularMate(self,fp):
+#        face = self.makeCantileverMateFace(fp,True)
+#        direction = FreeCAD.Vector(1,0,0)
+#        pt = FreeCAD.Vector(0,face.BoundBox.YMin, 0)
+#        revolve = face.revolve(pt,direction,180)
+#        revolve = revolve.fuse(revolve.mirror(pt,FreeCAD.Vector(0,0,1)))
+#        revolve.Placement.move(pt*-1) #centers at pt, axis of rotation
+#        revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        #at this point the object is oriented horizontally and centered on the origin
+#        #will be rotated vertically in a later step
+#        mirror = revolve.mirror(FreeCAD.Vector(0,0,0),FreeCAD.Vector(-1,0,0))
+#        if fp.Symmetric:
+#            revolve = revolve.fuse(mirror)
+#        elif fp.Reversed:
+#            revolve = mirror
+#        cog = mirror.Face1.CenterOfGravity
+#        revolve.Placement.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,1,0),90)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(0,0,1),fp.Angle)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(0,1,0),fp.AngleY)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(1,0,0),fp.AngleX)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.Placement.move(fp.Position)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        return revolve
+#
+#    def makeCantileverMateFace(self,fp, annular=False):
 #        ##cantilever hook calculations first, then we'll use them as references for the
 #        ##mate cutting tool shape, offset by fp.CantileverMateClearance (default 0.5mm)
 #
@@ -320,8 +444,12 @@ __version__ = "0.2021.12.2.rev3"
 #        undercutBottom2 = undercutBottom.add(FreeCAD.Vector(-offset,offset,0))
 #        undercutTop2 = undercutTop.add(FreeCAD.Vector(-offset,offset,0))
 #        topRight = FreeCAD.Vector(noseTop.x + undercut + fp.HeadSpaceAdjust, undercutTop.y + offset,0)
-#        bottomRight = FreeCAD.Vector(topRight.x, -topRight.y - offset, 0)
-#        baselineBottom2 = FreeCAD.Vector(0, -topRight.y -offset, 0)
+#        if not annular:
+#            bottomRight = FreeCAD.Vector(topRight.x, -topRight.y - offset, 0)
+#            baselineBottom2 = FreeCAD.Vector(0, -topRight.y -offset, 0)
+#        else:
+#            bottomRight = FreeCAD.Vector(topRight.x, -topRight.y + length/10 - fp.DiameterTweak, 0)
+#            baselineBottom2 = FreeCAD.Vector(0, -topRight.y + length/10 - fp.DiameterTweak, 0)
 #
 #        ## Edges
 #        baseline2 = Part.makeLine(baselineBottom2, baselineTop2)
@@ -333,8 +461,13 @@ __version__ = "0.2021.12.2.rev3"
 #        bottomLine2 = Part.makeLine(bottomRight, baselineBottom2)
 #        wire = Part.Wire([baseline2, leftSlant, topLine, undercutLeft2, topRightLine2, rightLine, bottomLine2])
 #        face = Part.makeFace(wire,"Part::FaceMakerCheese")
+#        if not annular:
+#            face.Placement.move(FreeCAD.Vector(0,0,-offset))
+#        return face
+#
+#    def makeCantileverMate(self,fp):
+#        face = self.makeCantileverMateFace(fp)
 #        face.Placement.move(fp.Position)
-#        face.Placement.move(FreeCAD.Vector(0,0,-offset))
 #        direction = FreeCAD.Vector(0,0,1)
 #        extrude = face.extrude(direction*(fp.Width + 2*offset))
 #        if fp.Symmetric or fp.Reversed:
@@ -765,7 +898,7 @@ def getJointType():
     '''ask user the joint type to make, return as string'''
     from PySide import QtCore,QtGui
     window = QtGui.QApplication.activeWindow()
-    items = ["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Cancel"]
+    items = ["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook","Annular Mate","Cancel"]
     caption = "Select joint type"
     item,ok = QtGui.QInputDialog.getItem(window,"Joint type",caption,items,False)
     if ok:
@@ -787,7 +920,7 @@ def makeObject(FP):
                 jType = getJointType()
                 if not jType:
                     continue
-                if jType == "Tenon" or jType == "Cantilever Hook":
+                if jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook":
                     orientation = "External"
                 else:
                     orientation = "Internal"
@@ -800,7 +933,7 @@ def makeObject(FP):
                     joint = doc.addObject("Part::FeaturePython","Joint")
                 FP.Joint(joint)
                 FP.JointVP(joint.ViewObject)
-                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook") else "Subtractive"
+                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook") else "Subtractive"
                 joint.Width = joint.Width * 10 if "Box" in jType or "Dovetail" in jType else joint.Width
                 joint.Proxy.execute(joint)
                 if body:
@@ -816,7 +949,7 @@ def makeObject(FP):
                     joint.Face = (selobj.Object, ["Face1"])
                     FreeCAD.Console.PrintError("Select 1 (planar) face of an object.\n")
                 joint.JointType = jType
-                if "Cantilever" in jType:
+                if "Cantilever" in jType or "Annular" in jType:
                     joint.Depth = 15
                     joint.Length = 3
         else:
