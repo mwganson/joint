@@ -469,6 +469,7 @@ __version__ = "0.2021.12.3"
 #        face = self.makeCantileverMateFace(fp)
 #        face.Placement.move(fp.Position)
 #        direction = FreeCAD.Vector(0,0,1)
+#        offset = fp.CantileverMateClearance
 #        extrude = face.extrude(direction*(fp.Width + 2*offset))
 #        if fp.Symmetric or fp.Reversed:
 #            mirror = extrude.mirror(FreeCAD.Vector(0,0,0),FreeCAD.Vector(-1,0,0))
