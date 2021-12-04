@@ -64,6 +64,9 @@ This is an enumeration of the various joint types available.  This is normally s
 ### Refine (boolean)
 This will appear in the Part Design in Part Design and in the Joint group if not in Part Design.  When True it removes some unnecessary coplanar edges from some faces.
 
+### Scale (float)
+Joints may be scaled, but care must be taken as the form factor that works for a given thickness might not work as well for another.  This is 3D uniform scaling applied to the joint only (not to the object to which it is attached).
+
 ## Positioning (group)
 Here I have placed the properties related to positioning the joints along the face.  For Mortise and Tenon joint types these will not often be needed, but occasionally even with these types the joint will need to be rotated 90 degrees.  For Dovetail Joints extensive use of these properties will be required to produce a suitable mating joint.  All values are floats interpreted as millimeters or degrees.
 
@@ -129,7 +132,23 @@ This is the angle of the undercut (default: 0 degrees).  A negative angle will m
 ### Undercut Position Tweak (float)
 This property allows to customize the Cantilever Hook and Mate types by tweaking the position of the undercut.  Move it out a bit further to improve the flexibility of the hook or in a little closer if you want a shorter hook.  But beware that if the hook is too short for the flexibility of the material being used it will be more prone to breaking.  If an aggressive undercut angle (positive value) is used this property should be also used to give the hook a bit more clearance to be able to snap into position upon insertion.
 
+## Annular (group)
+The Annular Hook and Annular Mate joints are very similar to the Cantilever types and share many of the same properties.  For example, the same face used to make the Canitlever Hooks is also used to make the Annular Hooks, only instead of extruding the face it is revolved.  There is a similar case for the Cantilever and Annular Mates, although in this case the faces are very slightly different.
 
+### Diameter Tweak (float)
+Use this to tweak the diameter of the Annular types.
+
+### Slot Angle (float)
+Interpreted as degrees.  For Annular Hook types this property defines the size of the slots cut into the hooks.  For example, a 90 degree slot angle would cut 1/4 turn out of the hook for each slot.  The bigger the slots, the more room the hook has to compress while being inserted.
+
+### Slot Bottom (float)
+This is a constrained value between 0.01 and 1.00.  It marks the position of the bottom of the slot, as a ratio of the overall height.  The default is 0.25, which means the slot bottom begins 1/4 the way up the hook.  The lower this value the longer the slots will be and the more flexible will be the hook.
+
+### Slot Count (integer)
+The number of slots (if any) to cut from the Annular Hook.  Default is 6.  If 0 is used, then no slots will be cut.
+
+### Slot Tool Fillet Radius (float)
+Default is 0.5 mm.  This is the radius applied to the cutting tool used to create the slots in the Annular Hooks.
 
 ## Changelog
 ### 0.2021.12.2.rev3 == rework the way cantilever mate face is made, set Taper to 0.3 default
