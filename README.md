@@ -65,7 +65,7 @@ This is an enumeration of the various joint types available.  This is normally s
 This will appear in the Part Design in Part Design and in the Joint group if not in Part Design.  When True it removes some unnecessary coplanar edges from some faces.
 
 ### Scale (float)
-Joints may be scaled, but care must be taken as the form factor that works for a given thickness might not work as well for another.  This is 3D uniform scaling applied to the joint only (not to the object to which it is attached).
+Joints may be scaled, but care must be taken as the form factor that works for a given thickness might not work as well for another.  Consider also that scaling is one of the last operations performed, so clearances are also being scaled.  If a clearance of 0.5 mm is used successfully at 1.0 scale, and then the object is scaled to 0.5, then the clearance should be changed to 1 mm if the 0.5 mm absolute clearance is to be maintained.  This is 3D uniform scaling applied to the joint only (not to the object to which it is attached).
 
 ## Positioning (group)
 Here I have placed the properties related to positioning the joints along the face.  For Mortise and Tenon joint types these will not often be needed, but occasionally even with these types the joint will need to be rotated 90 degrees.  For Dovetail Joints extensive use of these properties will be required to produce a suitable mating joint.  All values are floats interpreted as millimeters or degrees.
