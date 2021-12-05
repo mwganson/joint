@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.3"
-#__version__ = "0.2021.12.3"
+__version__ = "0.2021.12.4"
+#__version__ = "0.2021.12.4"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -18,6 +18,17 @@ __version__ = "0.2021.12.3"
 #        obj.setEditorMode("AddSubType",1)#readonly
 #        obj.addProperty("App::PropertyFloat", "Undercut","Cantilever","Cantilever undercut (readonly) calculated value")
 #        obj.setEditorMode("Undercut",1) #readonly
+#        obj.addProperty("App::PropertyFloatConstraint","BallRadius","Ball Joint","Ball joints only -- radius of the ball, in mm").BallRadius=(5,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallStemRadius","Ball Joint", "Ball joints only -- radius of stem connecting ball to face surface").BallStemRadius=(2,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallStemLength","Ball Joint", "Ball joints only -- length of stem connecting ball to face surface").BallStemLength=(2,0,1e13,.1)
+#        obj.addProperty("App::PropertyIntegerConstraint","BallSlotCount","Ball Joint","Ball joints only -- count of slots cut from ball").BallSlotCount = (3,0,1000,1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallSlotThickness","Ball Joint","Ball joints only -- size of slot in mm").BallSlotThickness = (.5,0.0,float("inf"),.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallFilletRadius","Ball Joint","Ball joints only -- radius of fillet (in mm) at stem base and ball base").BallFilletRadius = (0.5,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallSlotToolFilletRadius","Ball Joint","Ball joints only -- radius of fillet (in mm) at stem base and ball base").BallSlotToolFilletRadius = (0.1,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallSlotToolCoreRadius","Ball Joint","Ball joints only -- radius of slot cutting tool core cylinder").BallSlotToolCoreRadius = (0.5,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallSlotToolCoreSphereRadius","Ball Joint","Ball joints only -- radius of slot cutting tool core sphere").BallSlotToolCoreSphereRadius = (3.5,0,1e13,.1)
+#        obj.addProperty("App::PropertyFloatConstraint","BallMateStart","Ball Joint","Ball joints only -- ratio from 0 to 1.0 for start of ball mate relative to ball diameter").BallMateStart = (0.33,0.01,1,.01)
+#        obj.addProperty("App::PropertyFloatConstraint","BallSlotStart","Ball Joint","Ball joints only -- ratio from 0 to 1.0 for start of ball slot relative to ball diameter").BallSlotStart = (0.2,0,1,.01)
 #        obj.addProperty("App::PropertyFloatConstraint","RadiusFactor","Cantilever","Radius factor * length = radius of filet at base").RadiusFactor =(0.6,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloatConstraint","HeadSpaceAdjust","Cantilever","(Cantilever Mate only) adjusts the amount of free space between the hook nose tip and the mate back wall").HeadSpaceAdjust =(0,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloat","UndercutAngle","Cantilever","(Cantilver only) adjust angle of undercut")
@@ -33,7 +44,7 @@ __version__ = "0.2021.12.3"
 #        obj.addProperty("App::PropertyFloatConstraint","MaterialDeflection","Cantilever","Permissible deflection of material, default = 2%").MaterialDeflection = (0.02,-float("inf"),float("inf"),.001)
 #        obj.addProperty("App::PropertyFloatConstraint","CantileverMateClearance","Cantilever","Clearance for hook / mate.  Default 0.5 mm (for FDM), recommended 0.3 mm for other 3D printer types").CantileverMateClearance = (.5,-float("inf"),float("inf"),.1)
 #        obj.addProperty("App::PropertyFloatConstraint","ShapeDeflection","Cantilever","Deflection factor for rectangular cross section cantilevers, default = 1.09").ShapeDeflection = (1.09,-float("inf"),float("inf"),.01)
-#        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook", "Annular Mate"]
+#        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook", "Annular Mate","Ball Joint", "Ball Mate"]
 #        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=5
 #        obj.addProperty("App::PropertyVector","Position","Positioning","XYZ position adjustments (internal coordinate system)")
 #        obj.addProperty("App::PropertyFloat","FingerWidth","Dimensions","Width of fingers (for Box Joints / Dovetail Joints only)").FingerWidth=5
@@ -102,13 +113,19 @@ __version__ = "0.2021.12.3"
 #        notLatchProps = ["Offset"]
 #        annularProps = ["SlotToolFilletRadius","DiameterTweak","SlotAngle","SlotBottom","SlotCount"]
 #        notAnnularProps = ["Width"]
+#        notBallProps = ["Width","Length","Depth"]
+#        ballProps = ["BallSlotToolCoreSphereRadius","BallRadius","BallStemRadius","BallStemLength","BallSlotCount","BallSlotThickness","BallFilletRadius","BallSlotToolFilletRadius","BallMateStart","BallSlotStart"]
 #        if fp.JointType in ["Mortise","Tenon"]:
+#            self.hideThem(fp,notBallProps,False)
+#            self.hideThem(fp,ballProps,True)
 #            self.hideThem(fp,notAnnularProps,False)
 #            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,True)
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Box Joint":
+#            self.hideThem(fp,notBallProps,False)
+#            self.hideThem(fp,ballProps,True)
 #            self.hideThem(fp,notAnnularProps,False)
 #            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,False)
@@ -116,6 +133,8 @@ __version__ = "0.2021.12.3"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Dovetail Joint":
+#            self.hideThem(fp,notBallProps,False)
+#            self.hideThem(fp,ballProps,True)
 #            self.hideThem(fp,notAnnularProps,False)
 #            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,False)
@@ -123,6 +142,8 @@ __version__ = "0.2021.12.3"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif "Cantilever" in fp.JointType:
+#            self.hideThem(fp,notBallProps,False)
+#            self.hideThem(fp,ballProps,True)
 #            self.hideThem(fp,notAnnularProps,False)
 #            self.hideThem(fp,annularProps,True)
 #            self.hideThem(fp,fingerProps,True)
@@ -130,11 +151,21 @@ __version__ = "0.2021.12.3"
 #            self.hideThem(fp,cantileverProps, False)
 #            self.hideThem(fp,notLatchProps,True)
 #        elif "Annular" in fp.JointType:
+#            self.hideThem(fp,notBallProps,False)
+#            self.hideThem(fp,ballProps,True)
 #            self.hideThem(fp,notAnnularProps,True)
 #            self.hideThem(fp,annularProps,False)
 #            self.hideThem(fp,fingerProps,True)
 #            self.hideThem(fp,dovetailProps,True)
 #            self.hideThem(fp,cantileverProps, False)
+#            self.hideThem(fp,notLatchProps,True)
+#        elif "Ball" in fp.JointType:
+#            self.hideThem(fp,notBallProps,True)
+#            self.hideThem(fp,ballProps,False)
+#            self.hideThem(fp,annularProps,True)
+#            self.hideThem(fp,fingerProps,True)
+#            self.hideThem(fp,dovetailProps,True)
+#            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,True)
 #
 #    def execute(self,fp):
@@ -160,17 +191,21 @@ __version__ = "0.2021.12.3"
 #            shape = self.makeAnnularHook(fp)
 #        elif fp.JointType == "Annular Mate":
 #            shape = self.makeAnnularMate(fp)
+#        elif fp.JointType == "Ball Joint":
+#            shape = self.makeBallJoint(fp)
+#        elif fp.JointType == "Ball Mate":
+#            shape = self.makeBallMate(fp)
 #        else:
 #            FreeCAD.Console.PrintError(f"Unsupported joint type: {fp.JointType}\n")
 #            return
 #        shape = shape.scale(fp.Scale) if fp.Scale != 1.0 else shape
 ##       thanks to openBrain on the FreeCAD forum for this next line of code
 #        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.CenterOfMass, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),face.Surface.Axis)))
-#        if fp.JointType == "Tenon" or fp.ShowTool or fp.JointType == "Cantilever Hook" or fp.JointType == "Annular Hook":
+#        if fp.JointType == "Tenon" or fp.ShowTool or fp.JointType == "Cantilever Hook" or fp.JointType == "Annular Hook" or fp.JointType == "Ball Joint":
 #            full_shape = object.Shape.fuse(shape) if fp.Boolean else shape
 #        else: #other types all require cuts
 #            full_shape = object.Shape.cut(shape) if fp.Boolean else shape
-#        fp.Shape = full_shape
+#        fp.Shape = full_shape.removeSplitter() if fp.Refine else full_shape
 #        if hasattr(fp,"BaseFeature") and hasattr(fp,"AddSubShape"):
 #            if fp.BaseFeature and not shape.isNull():
 #                fp.AddSubShape = shape.transformShape(fp.Placement.inverse().toMatrix(),True)
@@ -285,6 +320,111 @@ __version__ = "0.2021.12.3"
 #        wire = Part.Wire([hookBaseline, topArc, hookTop, hookNoseLeft, hookNoseTop, hookNoseSlant, hookNoseBottom, hookBottom, bottomArc])
 #        face = Part.makeFace(wire,"Part::FaceMakerCheese")
 #        return face
+#
+#    def makeBallJoint(self,fp):
+#        ## points
+#        bottomLeft = FreeCAD.Vector(-fp.BallStemRadius - fp.BallFilletRadius, 0, 0)
+#        arcCenter = FreeCAD.Vector(-fp.BallStemRadius - fp.BallFilletRadius, 0, fp.BallFilletRadius)
+#        filletTop = FreeCAD.Vector(-fp.BallStemRadius,0,fp.BallFilletRadius)
+#        sagitta = fp.BallRadius - math.sqrt(fp.BallRadius**2 - fp.BallStemRadius**2)
+#        ballBottomLeft = FreeCAD.Vector(-fp.BallStemRadius, 0, fp.BallStemLength+sagitta)
+#        ballLeft = FreeCAD.Vector(-fp.BallRadius,0,fp.BallStemLength + fp.BallRadius)
+#        ballTop = FreeCAD.Vector(0,0,fp.BallStemLength + fp.BallRadius + fp.BallRadius)
+#        bottomRight = FreeCAD.Vector(0,0,0)
+#
+#       ## edges
+#        bottom = Part.makeLine(bottomRight,bottomLeft)
+#        filletArc = Part.makeCircle(fp.BallFilletRadius, arcCenter, FreeCAD.Vector(0,1,0),0, 90)
+#        stemLeft = Part.makeLine(filletTop, ballBottomLeft)
+#        ball = Part.ArcOfCircle(ballBottomLeft,ballLeft,ballTop)
+#        rightSide = Part.makeLine(ballTop,bottomRight)
+#
+#        wire = Part.Wire([bottom,filletArc,stemLeft,ball.toShape().Edge1,rightSide])
+#        face = Part.makeFace(wire,"Part::FaceMakerCheese")
+#        revolve = face.revolve(bottomRight, FreeCAD.Vector(0,0,1),180)
+#        revolve = revolve.makeFillet(fp.BallFilletRadius,[revolve.Edge7])
+#        revolve = revolve.fuse(revolve.mirror(FreeCAD.Vector(0,0,0), FreeCAD.Vector(0,1,0)))
+#        ## cut slots in ball
+#        btPos = fp.BallStemLength + fp.BallSlotStart * (2*fp.BallRadius)
+#        thick = fp.BallSlotThickness
+#        centerEdge = Part.makeLine(FreeCAD.Vector(-fp.BallRadius*2,-thick/2,btPos),FreeCAD.Vector(-fp.BallRadius*2,-thick/2,fp.BallStemLength+3*fp.BallRadius))
+#        topEdge = Part.makeLine(FreeCAD.Vector(-fp.BallRadius*2,-thick/2,fp.BallStemLength+3*fp.BallRadius),FreeCAD.Vector(fp.BallRadius*2,-thick/2,fp.BallStemLength+3*fp.BallRadius))
+#        rightEdge = Part.makeLine(FreeCAD.Vector(fp.BallRadius*2,-thick/2,fp.BallStemLength+3*fp.BallRadius),FreeCAD.Vector(fp.BallRadius*2,-thick/2,btPos))
+#        bottomEdge = Part.makeLine(FreeCAD.Vector(-fp.BallRadius*2,-thick/2,btPos),FreeCAD.Vector(fp.BallRadius*2,-thick/2,btPos))
+#        wire = Part.Wire([centerEdge,topEdge,rightEdge,bottomEdge])
+#        face = Part.makeFace(wire,"Part::FaceMakerCheese")
+#        slotTool = face.extrude(FreeCAD.Vector(0,thick,0))
+#        slotTool = slotTool.makeFillet(fp.BallSlotToolFilletRadius,[slotTool.Edge6,slotTool.Edge7,slotTool.Edge11,slotTool.Edge12])
+#        if fp.BallSlotToolCoreSphereRadius >= fp.BallRadius:
+#            FreeCAD.Console.PrintError("Ball joint core tool sphere radius must be smaller than ball radius.\n")
+#        if not fp.BallSlotToolCoreRadius == 0:
+#            core = Part.makeCylinder(fp.BallSlotToolCoreRadius,fp.BallStemLength+3*fp.BallRadius,FreeCAD.Vector(0,0,btPos-.01))
+#            coreSphere = Part.makeSphere(fp.BallSlotToolCoreSphereRadius,FreeCAD.Vector(0,0,fp.BallStemLength+fp.BallRadius)) if fp.BallSlotToolCoreSphereRadius != 0 else Part.Shape()
+#            toolCopies = core.fuse(coreSphere) if not coreSphere.isNull() else core
+#        else:
+#            toolCopies = Part.Shape()
+#        for ii in range(0,fp.BallSlotCount):
+#            copy = slotTool.copy()
+#            copy.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1), ii * (180 / fp.BallSlotCount))
+#            if toolCopies.isNull():
+#                toolCopies = copy
+#            else:
+#                toolCopies = toolCopies.fuse(copy)
+#        toolCopies = toolCopies.removeSplitter() if not toolCopies.isNull() else toolCopies
+#        if not toolCopies.isNull():
+#            revolve = revolve.cut(toolCopies)
+#        mirror = revolve.mirror(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1))
+#        if fp.Symmetric:
+#            revolve = revolve.fuse(mirror)
+#        elif fp.Reversed:
+#            revolve = mirror
+#        cog = mirror.Face1.CenterOfGravity
+#        revolve.rotate(cog,FreeCAD.Vector(0,0,1),fp.Angle)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(0,1,0),fp.AngleY)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.rotate(cog,FreeCAD.Vector(1,0,0),fp.AngleX)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        revolve.Placement.move(fp.Position)
+#        revolve = revolve.transformShape(revolve.Placement.toMatrix(),True)
+#        revolve.Placement = FreeCAD.Placement()
+#        return revolve
+#
+#    def makeBallMate(self,fp):
+#        #ballProps = ["BallRadius","BallStemRadius","BallStemLength",\
+#        #"BallSlotCount","BallSlotThickness","BallFilletRadius","BallSlotToolFilletRadius",\
+#        #"BallMateStart","BallSlotStart"]
+#        sphere = Part.makeSphere(fp.BallRadius, FreeCAD.Vector(0,0,fp.BallStemLength+fp.BallRadius))
+#        start = fp.BallStemLength + fp.BallMateStart * (fp.BallRadius * 2)
+#        circle = Part.makeCircle(fp.BallRadius, FreeCAD.Vector(0,0,start),FreeCAD.Vector(0,0,1))
+#        face = Part.makeFace(circle, "Part::FaceMakerCheese")
+#        extrude = face.extrude(FreeCAD.Vector(0,0,-1))
+#        common = extrude.common(sphere)
+#        r1 = common.Edge1.Curve.Radius
+#        cylinder = Part.makeCylinder(r1,start)
+#        fusion = cylinder.fuse(sphere)
+#        mirror = fusion.mirror(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1))
+#        if fp.Symmetric:
+#            fusion = fusion.fuse(mirror)
+#        elif fp.Reversed:
+#            fusion = mirror
+#        cog = mirror.Face1.CenterOfGravity
+#        fusion.rotate(cog,FreeCAD.Vector(0,0,1),fp.Angle)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.Placement = FreeCAD.Placement()
+#        fusion.rotate(cog,FreeCAD.Vector(0,1,0),fp.AngleY)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.Placement = FreeCAD.Placement()
+#        fusion.rotate(cog,FreeCAD.Vector(1,0,0),fp.AngleX)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.Placement = FreeCAD.Placement()
+#        fusion.Placement.move(fp.Position)
+#        fusion = fusion.transformShape(fusion.Placement.toMatrix(),True)
+#        fusion.Placement = FreeCAD.Placement()
+#        return fusion
 #
 #    def makeAnnularHook(self,fp):
 #        face = self.makeCantileverHookFace(fp)
@@ -899,7 +1039,7 @@ def getJointType():
     '''ask user the joint type to make, return as string'''
     from PySide import QtCore,QtGui
     window = QtGui.QApplication.activeWindow()
-    items = ["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook","Annular Mate","Cancel"]
+    items = ["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook","Annular Mate","Ball Joint","Ball Mate","Cancel"]
     caption = "Select joint type"
     item,ok = QtGui.QInputDialog.getItem(window,"Joint type",caption,items,False)
     if ok:
@@ -921,7 +1061,7 @@ def makeObject(FP):
                 jType = getJointType()
                 if not jType:
                     continue
-                if jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook":
+                if jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook" or jType == "Ball Joint":
                     orientation = "External"
                 else:
                     orientation = "Internal"
@@ -934,7 +1074,7 @@ def makeObject(FP):
                     joint = doc.addObject("Part::FeaturePython","Joint")
                 FP.Joint(joint)
                 FP.JointVP(joint.ViewObject)
-                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook") else "Subtractive"
+                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook" or jType == "Ball Joint") else "Subtractive"
                 joint.Width = joint.Width * 10 if "Box" in jType or "Dovetail" in jType else joint.Width
                 joint.Proxy.execute(joint)
                 if body:
