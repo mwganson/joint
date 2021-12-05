@@ -1,5 +1,5 @@
 # Macro Joint (Work in progress)
-Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, Dovetail Joint, Cantilever Hook and Mate, and Annular Hook and Mate.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.  Note: in the image below the "Finger Joint" is made using the Dovetail Joint type, but obviously with some different property values.  (None of these have actually been printed and tested at this time, so this is pretty much all "by guess and by gosh".  Some trial and error will be probably needed to find the optimal property values for the various joint types.) <br/>
+Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, Dovetail Joint, Cantilever Hook and Mate, Annular Hook and Mate, and Ball Joint and Mate.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.  Note: in the image below the "Finger Joint" is made using the Dovetail Joint type, but obviously with some different property values.  (None of these have actually been printed and tested at this time, so this is pretty much all "by guess and by gosh".  Some trial and error will be probably needed to find the optimal property values for the various joint types.) <br/>
 <br/>
 <img src="macro_joint_scr1.png" alt="screenshot"><br/>
 <br/>
@@ -150,7 +150,44 @@ The number of slots (if any) to cut from the Annular Hook.  Default is 6.  If 0 
 ### Slot Tool Fillet Radius (float)
 Default is 0.5 mm.  This is the radius applied to the cutting tool used to create the slots in the Annular Hooks.
 
+## Ball Joint (group)
+Ball Joint and Ball Mate types use spherical shapes.  The ball has slots cut into it to enable it to compress upon insertion into the Ball Mate.  The Ball Joint consists of a stem and a ball.  The ball sits atop the stem.  There is a fillet at the base of the stem where it meets the face and another fillet where the stem meets the ball.  The position of the slots is determined by the Ball Slot Start property, but you may elect to not have any slots if you prefer.  There are also two optional cutting tools for the core of the ball -- a sphere and a cylinder.  The core tool objects must, of course, be smaller than the radius of the ball or else all of the ball will be cut away.
+
+### Ball Fillet Radius (float)
+This is the radius of the fillets applied to the stem edges, in millimeters, where it meets the ball and the face to which the joint is attached.  A failure point for this joint is where stem meets base.  Having a fillet helps to evenly distribute the stress and improve the durability of the joint.
+
+### Ball Mate Start (float)
+Ball Mate only.  This is a number between 0 and 1 that determines where the opening for the ball joint is at in relation to the radius of the ball.  If the opening is too far down in the direction of the south pole, then the opening will be too small and the ball joint will not be able to deflect enough to fit into it.  If it's too high (above the equator), then the ball joint will not stay in place.  0 would be the south pole, 0.5 would be the equator.  You probably will get best results somewhere in the tropic of capricorn, to continue the earth analogy.  Honestly, I'm not sure yet the best value for this property.  It needs some trial and error testing and will depend also on the fit desired, material used, the slots made in the ball joint, and so on.  Default is 0.33, but take that with the proverbial grain of salt.
+
+### Ball Radius (float)
+Radius of the Ball Joint (and Ball Mate).  It's not clear by reading various guides whether the ball joint and the mate radii should be equal or if the ball joint should be slightly smaller.  Recommendations range from 0.0 mm (same size) to 0.3 mm, depending on the fit desired.  There is no offset property.  Just make the ball slightly smaller or the mate slightly bigger if you like.
+
+### Ball Slot Count (integer)
+The number of slots to cut into the Ball Joint.  The slots cut all the way across, unlike the slots in the Annular Joints, which cut only half the way through.  So you get 2 for the price of 1, so to speak.  The slots enable the ball to deflect / compress upon insertion into the ball mate.
+
+### Ball Slot Start (float)
+This is a value between 0 and 1.  It marks the bottom of the slots, relative to the bottom of the ball as a percentage of the diameter.  A value of 0.5, for example, would have the slots starting at the equator.  Default is 0.2.
+
+### Ball Slot Thickness (float)
+This is the thickness of the slots, in millimeters.
+
+### Ball Slot Tool Core Radius (float)
+This is the radius of the cylinder used as a core tool, to cut out the inside of the ball.  It starts at the same position (very slightly below) where the ball slots start and extends up through the north pole.  You may set this radius to 0 if you don't want the core cut out of the sphere.
+
+### Ball Slot Tool Core Sphere Radius (float)
+This is similar to the cylindrical core tool except this one is spherical.  It cuts the interior out of the ball.  Therefore, it is critical that the radius of this cutting tool is less than the radius of the ball or else all of the ball will be cut away.
+
+### Ball Slot Tool Fillet Radius (float)
+The radius of the fillets used on the slot cutting tool.
+
+### Ball Stem Length (float)
+Length of the stem.  You must have some minimal amount of stem or else the macro will fail.
+
+### Ball Stem Radius (float)
+The radius of the stem.  It should ordinarily be smaller than the radius of the ball.  If it's too small it might be more prone to failure.  If it's too large it might not fit in to the Ball Mate, which is based on the radius of the ball joint where the Ball Mate Start property sets the position of the opening.
+
 ## Changelog
+### 0.2021.12.4 == add ball joint and ball mate types
 ### 0.2021.12.2.rev3 == rework the way cantilever mate face is made, set Taper to 0.3 default
 ### 0.2021.12.2.rev2 == add Taper property to Cantilever Hook types
 ### 0.2021.12.2 == add UndercutAngle and UndercutPositionTweak properties
