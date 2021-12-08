@@ -187,6 +187,7 @@ Length of the stem.  You must have some minimal amount of stem or else the macro
 The radius of the stem.  It should ordinarily be smaller than the radius of the ball.  If it's too small it might be more prone to failure.  If it's too large it might not fit in to the Ball Mate, which is based on the radius of the ball joint where the Ball Mate Start property sets the position of the opening.
 
 ## Changelog
+### 0.2021.12.5 == add split joint and split mate types
 ### 0.2021.12.4 == add ball joint and ball mate types
 ### 0.2021.12.2.rev3 == rework the way cantilever mate face is made, set Taper to 0.3 default
 ### 0.2021.12.2.rev2 == add Taper property to Cantilever Hook types
