@@ -186,6 +186,23 @@ Length of the stem.  You must have some minimal amount of stem or else the macro
 ### Ball Stem Radius (float)
 The radius of the stem.  It should ordinarily be smaller than the radius of the ball.  If it's too small it might be more prone to failure.  If it's too large it might not fit in to the Ball Mate, which is based on the radius of the ball joint where the Ball Mate Start property sets the position of the opening.
 
+## Split Joint (group)
+Split Joint and Split Mate types are snap joints that feature 2 spheres, each on a split column.  These use the Length, Depth, Width, and Offset properties, same as used by the Mortise and Tenon types.  But there are also a few special properties relevant only to the Split Joint types.  The float properties are all interpreted as millimeters (just like everywhere else in this macro when it comes to length properties.)
+
+The Offset property may be used to make the Split Mate slightly larger (or the Split Joint slightly smaller) to get clearance for a suitable fit.  Alternatively, the Scale property may also be used.  Or, you can tweak the individual Length, Width, Depth, and Radii properties, if you prefer more fine control over the process.
+
+### Split Radius (float)
+This is the radius of the 2 spheres.  The rounded nose radius is a function of the Length property (rounded nose radius = Length / 2).
+
+### Split Rounded (boolean)
+Whether to have a rounded nose or a squared off nose.  Default is to have the rounded nose.  Use this if you would like the joint to be able to swivel.
+
+### Split Slot Fillet Radius (float)
+The radius of the fillets at the base of the columns, where the joint attaches to the face.  We make our own fillets rather than using OCCT fillet algorithm, so these are quite robust against some of the issues that will cause the OCCT fillets to fail.  But these also ignore the characteristics of the face to which the joint is attached.
+
+### Split Slot Width (float)
+The width of the slot between the 2 columns.  The mates never have columns, so it's only the Split Joint that this property applies to.  The wider the slot the thinner will be the columns.  Column width is a function of the Width property and this Split Slot Width property.
+
 ## Changelog
 ### 0.2021.12.5 == add split joint and split mate types
 ### 0.2021.12.4 == add ball joint and ball mate types
