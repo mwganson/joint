@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.5"
-#__version__ = "0.2021.12.5"
+__version__ = "0.2021.12.10"
+#__version__ = "0.2021.12.10"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
-#__doc__ = "Create a mortise/tenon joint, box joint, or dovetail joint."
+#__doc__ = "Create a mortise/tenon joint, box joint, dovetail joint, ball joint, or split joint."
 #__usage__ = '''Select the face and activate the tool, modify properties as desired'''
 #import Part, FreeCADGui, FreeCAD
 #from PySide import QtGui,QtCore
@@ -1205,13 +1205,6 @@ def writeFile():
                     line = "#" + line
                 outfile.write(line[1:]+"\n") #skip first character (#)
 
-
-
-############
-#if __name__ == "__main__":
-#    makeObject(None)
-#    raise Exception("quick exit for testing/debugging")
-############
 
 if __name__ == "__main__":
     import os
