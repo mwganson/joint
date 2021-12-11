@@ -1,4 +1,4 @@
-# Macro Joint (Work in progress)
+# Macro Joint
 Macro Joint is a macro to create joints in FreeCAD.  Usage: select a face and run the macro, select from the list the type of joint to make on that face.  Options are Mortise, Tenon, Box Joint, Dovetail Joint, Cantilever Hook and Mate, Annular Hook and Mate, and Ball Joint and Mate.  A feature python object is created with user configurable editable properties.  Join works in Part Design and other workbenches.  Note: in the image below the "Finger Joint" is made using the Dovetail Joint type, but obviously with some different property values.  (None of these have actually been printed and tested at this time, so this is pretty much all "by guess and by gosh".  Some trial and error will be probably needed to find the optimal property values for the various joint types.) <br/>
 <br/>
 <img src="macro_joint_scr1.png" alt="screenshot"><br/>
@@ -204,6 +204,7 @@ The radius of the fillets at the base of the columns, where the joint attaches t
 The width of the slot between the 2 columns.  The mates never have columns, so it's only the Split Joint that this property applies to.  The wider the slot the thinner will be the columns.  Column width is a function of the Width property and this Split Slot Width property.
 
 ## Changelog
+### 0.2021.12.10 = code cleanup
 ### 0.2021.12.5 == add split joint and split mate types
 ### 0.2021.12.4 == add ball joint and ball mate types
 ### 0.2021.12.2.rev3 == rework the way cantilever mate face is made, set Taper to 0.3 default
