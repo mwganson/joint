@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.12.10"
-#__version__ = "0.2021.12.10"
+__version__ = "0.2022.02.01"
+#__version__ = "0.2022.02.01"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -1115,7 +1115,7 @@ __version__ = "0.2021.12.10"
 
 ############
 #if __name__ == "__main__":
-#    FreeCAD.Console.PrintMessage("Please run "+BASENAME+".FCMacro rather than this file.\n")
+#    FreeCAD.Console.PrintMessage("Please run Joint.FCMacro rather than this file.\n")
 ############
 
 #CODE_ENDS_HERE
