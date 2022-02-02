@@ -204,6 +204,7 @@ The radius of the fillets at the base of the columns, where the joint attaches t
 The width of the slot between the 2 columns.  The mates never have columns, so it's only the Split Joint that this property applies to.  The wider the slot the thinner will be the columns.  Column width is a function of the Width property and this Split Slot Width property.
 
 ## Changelog
+### 0.2022.02.01 = fix bug in error message (BASENAME not defined)
 ### 0.2021.12.10 = code cleanup
 ### 0.2021.12.5 == add split joint and split mate types
 ### 0.2021.12.4 == add ball joint and ball mate types
