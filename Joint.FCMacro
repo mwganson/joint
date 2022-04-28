@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.02.01"
-#__version__ = "0.2022.02.01"
+__version__ = "0.2022.04.28"
+#__version__ = "0.2022.04.28"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -50,6 +50,7 @@ __version__ = "0.2022.02.01"
 #        obj.addProperty("App::PropertyFloatConstraint","ShapeDeflection","Cantilever","Deflection factor for rectangular cross section cantilevers, default = 1.09").ShapeDeflection = (1.09,-float("inf"),float("inf"),.01)
 #        obj.addProperty("App::PropertyEnumeration","JointType",jointGroup,"Type of joint to make").JointType=["Mortise","Tenon","Box Joint","Dovetail Joint","Cantilever Hook", "Cantilever Mate","Annular Hook", "Annular Mate","Ball Joint", "Ball Mate","Split Joint", "Split Mate"]
 #        obj.addProperty("App::PropertyFloat","Depth","Dimensions","depth of joint below or above surface").Depth=5
+#        obj.addProperty("App::PropertyBool","Rounded",jointGroup,"Mortise/Tenon has rounded ends").Rounded=True
 #        obj.addProperty("App::PropertyVector","Position","Positioning","XYZ position adjustments (internal coordinate system)")
 #        obj.addProperty("App::PropertyFloat","FingerWidth","Dimensions","Width of fingers (for Box Joints / Dovetail Joints only)").FingerWidth=5
 #        obj.addProperty("App::PropertyFloat","FingerAngle","Dimensions","Angle of fingers in degrees (for Box Joints / Dovetail Joints only)").FingerAngle=30
@@ -111,6 +112,7 @@ __version__ = "0.2022.02.01"
 #
 #    def hideProps(self,fp):
 #        '''hide properties unrelated to this type of joint'''
+#        mortiseTenonOnly = ["Rounded"]
 #        splitProps = ["SplitRadius","SplitSlotWidth","SplitSlotFilletRadius","SplitRounded"]
 #        fingerProps = ["FingerAngle","FingerAngle2","FingerWidth","UseOdd",]
 #        dovetailProps = ["FingerAngle","FingerAngle2"]
@@ -121,6 +123,7 @@ __version__ = "0.2022.02.01"
 #        notBallProps = ["Width","Length","Depth"]
 #        ballProps = ["BallSlotToolCoreRadius","BallSlotToolCoreSphereRadius","BallRadius","BallStemRadius","BallStemLength","BallSlotCount","BallSlotThickness","BallFilletRadius","BallSlotToolFilletRadius","BallMateStart","BallSlotStart"]
 #        if fp.JointType in ["Mortise","Tenon"]:
+#            self.hideThem(fp,mortiseTenonOnly,False)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -130,6 +133,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif "Split" in fp.JointType:
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, False)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -140,6 +144,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Box Joint":
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -150,6 +155,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif fp.JointType == "Dovetail Joint":
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -160,6 +166,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, True)
 #            self.hideThem(fp,notLatchProps,False)
 #        elif "Cantilever" in fp.JointType:
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -170,6 +177,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, False)
 #            self.hideThem(fp,notLatchProps,True)
 #        elif "Annular" in fp.JointType:
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,False)
 #            self.hideThem(fp,ballProps,True)
@@ -180,6 +188,7 @@ __version__ = "0.2022.02.01"
 #            self.hideThem(fp,cantileverProps, False)
 #            self.hideThem(fp,notLatchProps,True)
 #        elif "Ball" in fp.JointType:
+#            self.hideThem(fp,mortiseTenonOnly,True)
 #            self.hideThem(fp,splitProps, True)
 #            self.hideThem(fp,notBallProps,True)
 #            self.hideThem(fp,ballProps,False)
@@ -738,8 +747,12 @@ __version__ = "0.2022.02.01"
 #        midRight = FreeCAD.Vector(fp.Width/2,0,0).add(adjust)
 #        top = Part.makeLine(topLeft,topRight)
 #        bottom = Part.makeLine(bottomLeft,bottomRight)
-#        left = Part.makeCircle(fp.Length/2,midLeft,FreeCAD.Vector(0,0,1),90,270)
-#        right = Part.makeCircle(fp.Length/2,midRight,FreeCAD.Vector(0,0,1),270,90)
+#        if fp.Rounded:
+#            left = Part.makeCircle(fp.Length/2,midLeft,FreeCAD.Vector(0,0,1),90,270)
+#            right = Part.makeCircle(fp.Length/2,midRight,FreeCAD.Vector(0,0,1),270,90)
+#        else:
+#            left = Part.makeLine(topLeft, bottomLeft)
+#            right = Part.makeLine(topRight, bottomRight)
 #        wire = Part.Wire([top,right,bottom,left])
 #        wire.rotate(FreeCAD.Vector(0,0,0),FreeCAD.Vector(0,0,1),fp.Angle)
 #        face = Part.makeFace(wire,"Part::FaceMakerCheese")
