@@ -64,6 +64,9 @@ This is an enumeration of the various joint types available.  This is normally s
 ### Refine (boolean)
 This will appear in the Part Design in Part Design and in the Joint group if not in Part Design.  When True it removes some unnecessary coplanar edges from some faces.
 
+### Rounded (boolean) (Mortise/Tenon only)
+Default = True.  Specifies whether ends of joints will be rounded.  This applies to the left and right sides of the joints, so changing the Width property does not affect the radius of the curved ends, but changing the Length property does.  Set the Angle property to 90 degrees if you want top and bottom sides rounded.
+
 ### Scale (float)
 Joints may be scaled, but care must be taken as the form factor that works for a given thickness might not work as well for another.  Consider also that scaling is one of the last operations performed, so clearances are also being scaled.  If a clearance of 0.5 mm is used successfully at 1.0 scale, and then the object is scaled to 0.5, then the clearance should be changed to 1 mm if the 0.5 mm absolute clearance is to be maintained.  This is 3D uniform scaling applied to the joint only (not to the object to which it is attached).
 
