@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.05.01"
-#__version__ = "0.2022.05.01"
+__version__ = "0.2022.10.05"
+#__version__ = "0.2022.10.05"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -238,7 +238,7 @@ __version__ = "0.2022.05.01"
 #        shape = shape.scale(fp.Scale) if fp.Scale != 1.0 else shape
 #        x,y,z = map(self.roundIt, face.Surface.Axis) #round x,y,z to 12 digits
 ##       thanks to openBrain on the FreeCAD forum for this next line of code
-#        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.CenterOfMass, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),FreeCAD.Vector(x,y,z))))
+#        shape.Placement = fp.Placement.multiply(FreeCAD.Placement(face.BoundBox.Center, FreeCAD.Rotation(FreeCAD.Vector(0,0,1),FreeCAD.Vector(x,y,z))))
 #        if fp.JointType == "Tenon" or fp.ShowTool or fp.JointType == "Cantilever Hook" or fp.JointType == "Annular Hook" or fp.JointType == "Ball Joint" or fp.JointType == "Split Joint":
 #            full_shape = object.Shape.fuse(shape) if fp.Boolean else shape
 #        else: #other types all require cuts
