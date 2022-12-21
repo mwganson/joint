@@ -44,7 +44,7 @@ Mating joints that are exactly the same size will be very difficult to assemble 
 In this sections are properties related to the Joint objects, but not directly to either dimensioning or positioning.
 
 ### AddSubType (enumeration) (readonly)
-This is for information only.  Values can be "Additive" or "Subtractive".  Currently, only the Tenons are Additive.  The rest are all Subtractive.  This is determined at the time of object creation and cannot be changed.  The difference comes into play when you use a pattern tool in Part Design, such as linear pattern or mirror.
+(This property has been removed in version 0.2022.12.21 and later to avoid a conflict with some versions of FreeCAD LinkDaily.)  This is for information only.  Values can be "Additive" or "Subtractive".  Currently, only the Tenons are Additive.  The rest are all Subtractive.  This is determined at the time of object creation and cannot be changed.  The difference comes into play when you use a pattern tool in Part Design, such as linear pattern or mirror.
 
 ### Boolean (boolean)
 Default: True.  If set to False the cutting tool created is not cut from or fused with the object the face belongs to.  This might (or might not) be useful at times to be able to get at the cutting tool.
@@ -207,6 +207,7 @@ The radius of the fillets at the base of the columns, where the joint attaches t
 The width of the slot between the 2 columns.  The mates never have columns, so it's only the Split Joint that this property applies to.  The wider the slot the thinner will be the columns.  Column width is a function of the Width property and this Split Slot Width property.
 
 ## Changelog
+### 0.2022.12.21 == remove AddSubType property to avoid conflict with LinkDaily versions
 ### 0.2022.10.05 == use face's boundbox center instead of face's center of mass in execute()
 ### 0.2022.05.01 == round to 12 digits the face's axis (Bugs #3)
 ### 0.2022.04.28 = add Rounded property for mortise/tenon joint types
