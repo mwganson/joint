@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.10.05"
-#__version__ = "0.2022.10.05"
+__version__ = "0.2022.12.21"
+#__version__ = "0.2022.12.21"
 #__title__ = "Joint Macro"
 #__author__ = "<TheMarkster> 2021"
 #__license__ = "LGPL 2.1"
@@ -14,8 +14,8 @@ __version__ = "0.2022.10.05"
 #class Joint:
 #    def __init__(self,obj):
 #        jointGroup = "Joint v."+__version__
-#        obj.addProperty("App::PropertyString","AddSubType",jointGroup,"Additive, Subtractive type when using Part Design pattern tools -- set at time of object creation.")
-#        obj.setEditorMode("AddSubType",1)#readonly
+##        obj.addProperty("App::PropertyString","AddSubType",jointGroup,"Additive, Subtractive type when using Part Design pattern tools -- set at time of object creation.")
+##        obj.setEditorMode("AddSubType",1)#readonly
 #        obj.addProperty("App::PropertyFloat", "Undercut","Cantilever","Cantilever undercut (readonly) calculated value")
 #        obj.setEditorMode("Undercut",1) #readonly
 #        obj.addProperty("App::PropertyFloatConstraint","SplitRadius","Split Joint","Radius of spheres").SplitRadius = (1,0.01,float("inf"),.1)
@@ -1186,7 +1186,7 @@ def makeObject(FP):
                     joint = doc.addObject("Part::FeaturePython","Joint")
                 FP.Joint(joint)
                 FP.JointVP(joint.ViewObject)
-                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook" or jType == "Ball Joint" or jType == "Split Joint") else "Subtractive"
+#                joint.AddSubType = "Additive" if bool(jType == "Tenon" or jType == "Cantilever Hook" or jType == "Annular Hook" or jType == "Ball Joint" or jType == "Split Joint") else "Subtractive"
                 joint.Width = joint.Width * 10 if "Box" in jType or "Dovetail" in jType else joint.Width
                 joint.Depth = 10 if "Split" in jType else joint.Depth
                 joint.Proxy.execute(joint)
